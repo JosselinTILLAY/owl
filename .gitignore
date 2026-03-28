@@ -1,4 +1,6 @@
 moodledata/
+moodle/
+.env 
 
 # Venv
 backend/.venv

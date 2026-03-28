@@ -1,1 +1,0 @@
-It should be cloned in the block folder
