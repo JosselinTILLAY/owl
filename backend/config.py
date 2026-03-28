@@ -53,5 +53,9 @@ else:
 STATIC_DIR = "static"
 PODCASTS_DIR = os.path.join(STATIC_DIR, "podcasts")
 
+# Ensure static directory exists
+os.makedirs(STATIC_DIR, exist_ok=True)
+os.makedirs(PODCASTS_DIR, exist_ok=True)
+
 # Ensure directories exist
 os.makedirs(PODCASTS_DIR, exist_ok=True)
