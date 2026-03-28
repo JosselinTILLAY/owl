@@ -15,8 +15,8 @@ async def generate_summary(text: str) -> str:
     text_len = len(text)
     logger.info(f"⚡ GPT-5.4 Summarization requested. Input text length: {text_len} chars.")
     
-    if text_len < 50:
-        logger.warning("Extracted text is very short. Summarization might fail.")
+    if text_len < 10:
+        return "The PDF seems to be empty or an image-only scan. Please use a document with selectable text."
 
     try:
         response = client.chat.completions.create(
@@ -24,17 +24,18 @@ async def generate_summary(text: str) -> str:
             reasoning_effort="none",
             messages=[
                 {"role": "system", "content": (
-                    "You are a professional educational summarizer. Analyze the FULL text and produce a professional summary. "
-                    "You MUST speak and output ONLY in ENGLISH. For ALL math formulas, use professional LaTeX notation strictly wrapped in \\( ... \\) for inline and \\[ ... \\] for block math."
+                    "You are a professional educational summarizer. Your goal is to provide a concise, structured summary of the provided content in ENGLISH. "
+                    "Focus on main concepts and technical definitions. "
+                    "Use professional LaTeX notation wrapped in \\( ... \\) for inline and \\[ ... \\] for block math."
                 )},
-                {"role": "user", "content": f"Please summarize this entire course content in ENGLISH:\n\n{text}"}
+                {"role": "user", "content": f"Summarize this course content in ENGLISH:\n\n{text}"}
             ],
             max_completion_tokens=2500
         )
         content = response.choices[0].message.content
-        if not content:
+        if not content or content.strip() == "":
             logger.error("OpenAI returned empty content for summary.")
-            return ""
+            return "The AI was unable to generate a summary. The document content might be too complex or too short for fast-mode summarization."
             
         logger.info(f"Summarization successful. Response length: {len(content)} chars.")
         return content
