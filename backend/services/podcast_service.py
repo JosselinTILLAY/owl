@@ -5,9 +5,10 @@ from typing import Literal, List
 from pydub import AudioSegment
 from config import (
     client, logger, PODCASTS_DIR, ELEVEN_LABS_API_KEY,
-    ELEVEN_LABS_MODEL_ID, ELEVEN_LABS_VOICE_ID_ALEX, ELEVEN_LABS_VOICE_ID_JAMIE,
     FFMPEG_PATH, FFPROBE_PATH, OPENAI_MODEL_ID, PROMPTS
 )
+from vocal_config import VOCAL_CONFIG
+from services.music_service import generate_background_music
 from models import PodcastScript
 
 # Configure pydub to find ffmpeg
@@ -44,12 +45,9 @@ async def synthesize_audio_openai(
     output_path: str
 ):
     """Synthesizes multi-voice audio using OpenAI TTS with individual line stitching."""
-    # Mapping student personas to OpenAI voices
-    voices = {
-        "Alex": "nova",   # Vibrant, energetic female
-        "Jamie": "onyx",  # Clear, authoritative male
-        "Narrator": "alloy"
-    }
+    # Mapping personas from vocal config
+    voices = VOCAL_CONFIG["openai"]["voices"]
+    pause_ms = VOCAL_CONFIG["openai"]["pause_duration_ms"]
 
     temp_files = []
     try:
@@ -63,7 +61,7 @@ async def synthesize_audio_openai(
                 try:
                     # Using the direct OpenAI sync client but keeping it compatible with our async flow
                     response = client.audio.speech.create(
-                        model="tts-1",
+                        model=VOCAL_CONFIG["openai"]["model"],
                         voice=voice,
                         input=line.content
                     )
@@ -76,7 +74,7 @@ async def synthesize_audio_openai(
                     # Load and stitch
                     segment = AudioSegment.from_mp3(temp_path)
                     combined_audio += segment
-                    combined_audio += AudioSegment.silent(duration=400) # Natural pause
+                    combined_audio += AudioSegment.silent(duration=pause_ms) # Natural pause
                     logger.info(f"Appended {line.speaker}'s line. Current duration: {len(combined_audio)}ms")
                     
                 except Exception as e:
@@ -105,12 +103,11 @@ async def synthesize_audio_elevenlabs(
     if not ELEVEN_LABS_API_KEY:
         raise Exception("ElevenLabs API key is missing. Please set it in your .env file.")
 
-    # Voice IDs (from environment)
-    voices = {
-        "Alex": ELEVEN_LABS_VOICE_ID_ALEX,
-        "Jamie": ELEVEN_LABS_VOICE_ID_JAMIE,
-        "Narrator": "IKne3meq5aSn9XLyUdCD" # Default fallback
-    }
+    # Voice mappings and settings from vocal config
+    voices = VOCAL_CONFIG["elevenlabs"]["voices"]
+    default_settings = VOCAL_CONFIG["elevenlabs"]["default_settings"]
+    persona_settings = VOCAL_CONFIG["elevenlabs"].get("persona_settings", {})
+    pause_ms = VOCAL_CONFIG["elevenlabs"]["pause_duration_ms"]
 
     temp_files = []
     try:
@@ -125,13 +122,13 @@ async def synthesize_audio_elevenlabs(
                     "Content-Type": "application/json",
                     "xi-api-key": ELEVEN_LABS_API_KEY
                 }
+                # Get persona-specific settings or fallback to default
+                current_voice_settings = persona_settings.get(line.speaker, default_settings)
+
                 data = {
                     "text": line.content,
-                    "model_id": ELEVEN_LABS_MODEL_ID,
-                    "voice_settings": {
-                        "stability": 0.5,
-                        "similarity_boost": 0.75
-                    }
+                    "model_id": VOCAL_CONFIG["elevenlabs"]["model_id"],
+                    "voice_settings": current_voice_settings
                 }
 
                 logger.info(f"Generating audio for {line.speaker} (line {i+1})...")
@@ -161,12 +158,32 @@ async def synthesize_audio_elevenlabs(
                 try:
                     segment = AudioSegment.from_mp3(temp_path)
                     combined_audio += segment
-                    combined_audio += AudioSegment.silent(duration=300)
+                    combined_audio += AudioSegment.silent(duration=pause_ms)
                     logger.info(f"Successfully appended {line.speaker}'s line. Current duration: {len(combined_audio)}ms")
                 except Exception as segment_err:
                     logger.error(f"Failed to process audio segment for {line.speaker}: {str(segment_err)}")
         
         if len(combined_audio) > 0:
+            # --- Enhancement: Background Music Mixing ---
+            try:
+                logger.info("🎸 Generating background music for the podcast...")
+                music_prompt = "lo-fi hip hop study beats, calm, ambient, academic atmosphere"
+                # Duration should match or be slightly longer than the audio
+                music_path = generate_background_music(music_prompt, duration_ms=len(combined_audio) + 5000)
+                
+                if music_path and os.path.exists(music_path):
+                    bg_music = AudioSegment.from_mp3(music_path)
+                    # Lower volume of music significantly (-25dB)
+                    bg_music = bg_music - 25 
+                    # Mix music and voice
+                    combined_audio = bg_music.overlay(combined_audio)
+                    logger.info("✅ Background music mixed successfully.")
+                    # Cleanup music file
+                    try: os.remove(music_path)
+                    except: pass
+            except Exception as music_err:
+                logger.warning(f"⚠️ Music mixing failed (continuing with voice only): {str(music_err)}")
+
             combined_audio.export(output_path, format="mp3")
             logger.info(f"Successfully stitched {len(temp_files)} lines into {output_path} (Final Size: {os.path.getsize(output_path)} bytes)")
         else:

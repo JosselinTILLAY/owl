@@ -4,10 +4,10 @@ from models import Feature
 async def get_available_features():
     """Returns the list of available AI features."""
     return [
-        Feature(id="summarize", name="Course Summary", description="Generate summaries for your course materials."),
-        Feature(id="exercises", name="MCQ Exercises", description="Generate dynamic multiple-choice questions."),
-        Feature(id="podcast", name="Audio Synthesis", description="Generate a podcast summary of your PDF."),
-        Feature(id="shorts", name="Education Shorts", description="Generate scripts for short video formats.")
+        Feature(id="summarize", name="Course Summary", description="Generate summaries for your whole course using RAG."),
+        Feature(id="exercises", name="MCQ Exercises", description="Generate dynamic questions from your course materials."),
+        Feature(id="chat", name="Course Chat", description="Ask anything about your lessons and get cited answers."),
+        Feature(id="podcast", name="Audio Synthesis", description="Generate a podcast summary of your course.")
     ]
 
 async def generate_summary(text: str) -> str:
@@ -83,6 +83,38 @@ async def generate_shorts_script(text: str) -> dict:
     except Exception as e:
         logger.error(f"Shorts generation failed: {str(e)}")
         raise e
+
+async def generate_rag_response_stream(query: str, context: str, mode: str = "chat"):
+    """Generates a streaming response using RAG-retrieved context."""
+    logger.info(f"⚡ RAG Streaming requested (mode: {mode}). Context length: {len(context)} chars.")
+    
+    # Select prompt based on mode
+    system_prompt = PROMPTS.get(mode, PROMPTS['rag'])['system']
+    user_template = PROMPTS.get(mode, PROMPTS['rag'])['user']
+    
+    user_content = user_template.replace("{context}", context).replace("{text}", context).replace("{query}", query)
+    
+    try:
+        # Use the async client and stream=True
+        # Note: client is sync in current config, I should check if I can use stream=True on sync client too
+        # or if I need to await it. OpenAI sync client .chat.completions.create(stream=True) returns an iterator.
+        
+        response = client.chat.completions.create(
+            model=OPENAI_MODEL_ID,
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_content}
+            ],
+            stream=True
+        )
+        
+        for chunk in response:
+            if chunk.choices[0].delta.content:
+                yield chunk.choices[0].delta.content
+                
+    except Exception as e:
+        logger.error(f"RAG Streaming failed: {str(e)}")
+        yield f"Error: {str(e)}"
 
 async def generate_music_prompt(text: str) -> str:
     """Extracts a dynamic musical style prompt from the provided text using AI."""

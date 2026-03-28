@@ -13,21 +13,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const fileStatusHeader = document.getElementById('file-status-header');
     const featureTitle = document.getElementById('feature-title');
 
+    // Chat Elements
+    const chatInput = document.getElementById('chat-input');
+    const sendChatBtn = document.getElementById('send-chat-btn');
+    const chatHistory = document.getElementById('chat-history');
+
     const BACKEND_URL = 'http://localhost:8001';
 
     // State
     let selectedFile = null;
     let currentFeature = 'podcast';
-    let currentMode = 'duo';
     let currentProvider = 'elevenlabs';
+    let currentMode = 'duo';
+    let contextId = null; // Generated on first upload
 
     // Feature Definitions
     const features = {
         podcast: { title: "Podcast <span>Generation</span>", endpoint: "/generate-podcast" },
-        summary: { title: "Course <span>Summary</span>", endpoint: "/summarize" },
-        exercises: { title: "MCQ <span>Exercises</span>", endpoint: "/generate-exercises" },
-        video: { title: "Chill <span>Short Video</span>", endpoint: "/generate-short-video" },
-        music: { title: "AI Background <span>Music</span>", endpoint: "/generate-music" }
+        summary: { title: "Course <span>Summary</span>", endpoint: "/rag/query", mode: "summarize" },
+        exercises: { title: "MCQ <span>Exercises</span>", endpoint: "/rag/query", mode: "exercises" },
+        chat: { title: "Course <span>Chat</span>", endpoint: "/rag/query", mode: "chat" }
     };
 
     // Sidebar Navigation
@@ -74,6 +79,11 @@ document.addEventListener('DOMContentLoaded', () => {
         fileInfo.classList.remove('hidden');
         dropZone.classList.add('hidden');
         generateBtn.disabled = false;
+        
+        // Generate contextId if not exists
+        if (!contextId) {
+            contextId = 'ctx_' + Math.random().toString(36).substring(2, 10);
+        }
     }
 
     removeFileBtn.addEventListener('click', () => {
@@ -89,37 +99,26 @@ document.addEventListener('DOMContentLoaded', () => {
         generateBtn.disabled = true;
         emptyState.classList.add('hidden');
         loadingState.classList.remove('hidden');
-        loadingText.textContent = "Analyzing PDF...";
+        loadingText.textContent = "Analyzing & Ingesting PDF...";
 
         try {
-            // 1. Upload & Extract Text
+            // 1. Upload & Ingest (RAG)
             const formData = new FormData();
             formData.append('file', selectedFile);
-            const uploadRes = await fetch(`${BACKEND_URL}/upload-pdf`, { method: 'POST', body: formData });
-            if (!uploadRes.ok) throw new Error('Failed to read PDF');
-            const { text } = await uploadRes.json();
+            formData.append('context_id', contextId);
+            
+            const ingestRes = await fetch(`${BACKEND_URL}/rag/ingest`, { method: 'POST', body: formData });
+            if (!ingestRes.ok) throw new Error('Ingestion failed');
+            
+            const ingestData = await ingestRes.json();
+            console.log('Ingested chunks:', ingestData.chunks);
 
             // 2. Feature Specific Generation
-            loadingText.textContent = `Generating your ${currentFeature}...`;
-            
-            const genBody = new FormData();
-            genBody.append('text', text);
-            genBody.append('mode', currentMode);
-            genBody.append('provider', currentProvider);
-            if (currentFeature === 'video') genBody.append('music_prompt', document.getElementById('music-prompt').value);
-            if (currentFeature === 'music') genBody.append('music_prompt', document.getElementById('music-prompt-standalone').value);
-
-            const res = await fetch(`${BACKEND_URL}${features[currentFeature].endpoint}`, { method: 'POST', body: genBody });
-            if (!res.ok) throw new Error('AI generation failed');
-            let data = await res.json();
-
-            // If it's an async job, poll for results
-            if (data.job_id && currentFeature === 'podcast') {
-                data = await pollJobStatus(data.job_id);
+            if (currentFeature === 'podcast') {
+                await handlePodcastGeneration();
+            } else {
+                await handleRAGStreaming(currentFeature);
             }
-
-            // 3. Render Output
-            renderOutput(currentFeature, data);
 
         } catch (err) {
             alert(err.message);
@@ -130,23 +129,132 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    async function handlePodcastGeneration() {
+        loadingText.textContent = "Synthesizing Podcast Audio...";
+        
+        // Use the old endpoint but with the full text? 
+        // Actually for simplicity, we keep podcast as is for now but we could use RAG eventually.
+        // We need the text for the podcast.
+        const res = await fetch(`${BACKEND_URL}/upload-pdf`, { 
+            method: 'POST', 
+            body: (()=>{const fd=new FormData(); fd.append('file', selectedFile); return fd;})() 
+        });
+        const { text } = await res.json();
+
+        const genBody = new FormData();
+        genBody.append('text', text);
+        genBody.append('mode', currentMode);
+        genBody.append('provider', currentProvider);
+
+        const podRes = await fetch(`${BACKEND_URL}/generate-podcast`, { method: 'POST', body: genBody });
+        const podData = await podRes.json();
+        const finalData = await pollJobStatus(podData.job_id);
+        renderOutput('podcast', finalData);
+    }
+
+    async function handleRAGStreaming(featureId) {
+        const outlet = document.getElementById(`result-${featureId}`);
+        const contentArea = featureId === 'chat' ? null : document.getElementById(`${featureId}-content`);
+        
+        outlet.classList.remove('hidden');
+        if (contentArea) contentArea.innerHTML = '<div class="streaming-cursor"></div>';
+
+        const body = new FormData();
+        body.append('context_id', contextId);
+        body.append('mode', features[featureId].mode);
+        
+        // Query differs based on feature
+        let query = "Summarize the course material.";
+        if (featureId === 'exercises') query = "Generate 3 MCQ exercises.";
+        if (featureId === 'chat') query = chatInput.value || "Tell me about this course.";
+        
+        body.append('query', query);
+
+        const response = await fetch(`${BACKEND_URL}/rag/query`, {
+            method: 'POST',
+            body: body
+        });
+
+        if (!response.ok) throw new Error('Streaming failed');
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let fullText = '';
+
+        if (featureId === 'chat') {
+            appendChatBubble('ai', ''); // Create empty AI bubble
+        }
+
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            
+            const chunk = decoder.decode(value, { stream: true });
+            fullText += chunk;
+            
+            if (featureId === 'chat') {
+                updateLastChatBubble(fullText);
+            } else {
+                contentArea.innerHTML = formatMarkdown(fullText) + '<div class="streaming-cursor"></div>';
+            }
+        }
+        
+        // Final render without cursor
+        if (contentArea) {
+            contentArea.innerHTML = formatMarkdown(fullText);
+            triggerMathRendering(`${featureId}-content`);
+        } else if (featureId === 'chat') {
+            updateLastChatBubble(fullText, false);
+            triggerMathRendering('chat-history');
+        }
+    }
+
+    // Chat Interaction
+    sendChatBtn.addEventListener('click', async () => {
+        const query = chatInput.value.trim();
+        if (!query || !contextId) return;
+
+        appendChatBubble('user', query);
+        chatInput.value = '';
+        
+        await handleRAGStreaming('chat');
+    });
+
+    chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendChatBtn.click();
+    });
+
+    function appendChatBubble(role, text) {
+        const bubble = document.createElement('div');
+        bubble.className = `chat-bubble ${role} ${role === 'ai' ? 'streaming-cursor' : ''}`;
+        bubble.innerHTML = role === 'user' ? text : formatMarkdown(text);
+        chatHistory.appendChild(bubble);
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+    }
+
+    function updateLastChatBubble(text, isStreaming = true) {
+        const bubbles = chatHistory.querySelectorAll('.chat-bubble.ai');
+        const lastBubble = bubbles[bubbles.length - 1];
+        if (lastBubble) {
+            lastBubble.innerHTML = formatMarkdown(text);
+            if (isStreaming) {
+                lastBubble.classList.add('streaming-cursor');
+            } else {
+                lastBubble.classList.remove('streaming-cursor');
+            }
+        }
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+    }
+
     async function pollJobStatus(jobId) {
         const pollInterval = 2000;
         while (true) {
             const res = await fetch(`${BACKEND_URL}/podcast/job/${jobId}`);
-            if (!res.ok) throw new Error('Failed to check job status');
-            
             const job = await res.json();
-            if (job.status === 'completed') {
-                return job.result;
-            } else if (job.status === 'failed') {
-                throw new Error(job.error || 'Podcast generation failed');
-            }
-            
-            // Update UI with status
-            loadingText.textContent = `Podcast status: ${job.status.charAt(0).toUpperCase() + job.status.slice(1)}...`;
-            
-            await new Promise(resolve => setTimeout(resolve, pollInterval));
+            if (job.status === 'completed') return job.result;
+            if (job.status === 'failed') throw new Error(job.error || 'Failed');
+            loadingText.textContent = `Podcast status: ${job.status}...`;
+            await new Promise(r => setTimeout(r, pollInterval));
         }
     }
 
@@ -166,28 +274,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `).join('');
             player.play();
-        } 
-        else if (feature === 'summary') {
-            const content = data.summary !== undefined ? data.summary : data;
-            document.getElementById('summary-content').innerHTML = formatMarkdown(content || "AI could not generate a summary for this document.");
-            triggerMathRendering('summary-content');
-        }
-        else if (feature === 'exercises') {
-            const content = data.exercises !== undefined ? data.exercises : data;
-            document.getElementById('exercises-content').innerHTML = formatMarkdown(content || "AI could not generate exercises.");
-            triggerMathRendering('exercises-content');
-        }
-        else if (feature === 'video') {
-            const video = document.getElementById('video-player');
-            video.src = `${BACKEND_URL}${data.video_url}`;
-            document.getElementById('video-download-link').href = video.src;
-            video.play();
-        }
-        else if (feature === 'music') {
-            const music = document.getElementById('music-player');
-            music.src = `${BACKEND_URL}${data.audio_url || data}`;
-            document.getElementById('music-download-link').href = music.src;
-            music.play();
         }
     }
 
@@ -195,6 +281,11 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('.result-outlet').forEach(o => o.classList.add('hidden'));
         emptyState.classList.remove('hidden');
         loadingState.classList.add('hidden');
+        if (currentFeature === 'chat') {
+             // Keep chat history? For now yes, but show the panel
+             document.getElementById('result-chat').classList.remove('hidden');
+             emptyState.classList.add('hidden');
+        }
     }
 
     function formatMarkdown(text) {
@@ -203,14 +294,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function triggerMathRendering(elementId) {
-        const el = document.getElementById(elementId);
-        if (typeof renderMathInElement === 'function') {
+        const el = typeof elementId === 'string' ? document.getElementById(elementId) : elementId;
+        if (typeof renderMathInElement === 'function' && el) {
             renderMathInElement(el, {
                 delimiters: [
                     {left: '$$', right: '$$', display: true},
                     {left: '$', right: '$', display: false},
                     {left: '\\(', right: '\\)', display: false},
-                    {left: '\\sqrt', right: ' ', display: false}, // Handle inline sqrt
                     {left: '\\[', right: '\\]', display: true}
                 ],
                 throwOnError : false

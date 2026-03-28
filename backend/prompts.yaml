@@ -73,3 +73,17 @@ music_style:
     Extract the musical mood for this content:
 
     {text}
+
+rag:
+  system: |
+    You are an AI teaching assistant. You have access to the following course context.
+    Your goal is to answer the user's question accurately based ONLY on the provided context.
+    If the answer is not in the context, say "I don't have enough information in the course materials to answer that."
+    Use professional LaTeX notation wrapped in \( ... \) for inline and \[ ... \] for block math.
+    Be concise but thorough.
+  user: |
+    CONTEXT:
+    {context}
+
+    USER QUESTION:
+    {query}

@@ -22,7 +22,7 @@ OWL est un plugin pour [Moodle](https://moodle.org), un LMS utilisé dans de nom
 ### 1. Prérequis
 - **Python 3.10+** (Recommandé 3.13)
 - **FFmpeg** (installé et présent dans votre PATH système)
-- **Clés API :** OpenAI (GPT-5.4) et ElevenLabs.
+- **Clés API :** OpenAI et ElevenLabs.
 
 ### 2. Configuration
 Copiez le modèle d'environnement et remplissez vos clés :

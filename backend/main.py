@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 import os
 
 from config import logger, STATIC_DIR, BACKEND_PORT
-from routers import ai_router, podcast_router, video_router, music_router
+from routers import ai_router, podcast_router, video_router, music_router, rag_router
 
 app = FastAPI(
     title="Moodle OWL AI Backend",
@@ -40,6 +40,7 @@ app.include_router(ai_router.router)
 app.include_router(podcast_router.router)
 app.include_router(video_router.router)
 app.include_router(music_router.router)
+app.include_router(rag_router.router)
 
 @app.get("/")
 async def root():

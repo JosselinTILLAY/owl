@@ -32,13 +32,9 @@
                 <span class="icon">🧠</span>
                 <span class="label">MCQ</span>
             </li>
-            <li data-feature="video">
-                <span class="icon">🎞️</span>
-                <span class="label">Chill Video</span>
-            </li>
-            <li data-feature="music">
-                <span class="icon">🎵</span>
-                <span class="label">AI Music</span>
+            <li data-feature="chat">
+                <span class="icon">💬</span>
+                <span class="label">Course Chat</span>
             </li>
         </ul>
         <div class="sidebar-footer">
@@ -66,17 +62,10 @@
                     </div>
                 </div>
 
-                <div id="config-video" class="feature-config hidden">
+                <div id="config-chat" class="feature-config hidden">
                     <div class="form-group">
-                        <label>Atmosphere (AI Auto-curated)</label>
-                        <input type="text" id="music-prompt" placeholder="AI will extract from PDF (or enter override style)...">
-                    </div>
-                </div>
-
-                <div id="config-music" class="feature-config hidden">
-                    <div class="form-group">
-                        <label>Musical Mood (AI Auto-curated)</label>
-                        <input type="text" id="music-prompt-standalone" placeholder="AI will extract from PDF (or enter override style)...">
+                        <label>Quick Questions</label>
+                        <p class="hint-text">Ask anything about your uploaded materials below.</p>
                     </div>
                 </div>
 
@@ -96,7 +85,7 @@
                         <input type="file" id="pdf-input" accept=".pdf" hidden>
                     </div>
                     <div id="file-info" class="file-info hidden">
-                        <span class="file-name">filename.pdf</span>
+                        <span class="file-name"></span>
                         <button id="remove-file">×</button>
                     </div>
                 </div>
@@ -134,21 +123,12 @@
                     <div class="markdown-view" id="exercises-content"></div>
                 </div>
 
-                <div id="result-video" class="result-outlet hidden">
-                    <div class="video-card">
-                        <video id="video-player" controls width="100%" class="rounded-video"></video>
-                        <div class="actions">
-                            <a id="video-download-link" href="#" download class="secondary-btn">Download MP4</a>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="result-music" class="result-outlet hidden">
-                    <div class="audio-card">
-                        <p>AI Background Music:</p>
-                        <audio id="music-player" controls></audio>
-                        <div class="actions">
-                            <a id="music-download-link" href="#" download class="secondary-btn">Download Music</a>
+                <div id="result-chat" class="result-outlet hidden">
+                    <div class="chat-container">
+                        <div id="chat-history" class="chat-history"></div>
+                        <div class="chat-input-area">
+                            <input type="text" id="chat-input" placeholder="Ask a question about the course...">
+                            <button id="send-chat-btn" class="icon-btn">🚀</button>
                         </div>
                     </div>
                 </div>
