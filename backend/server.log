@@ -1,0 +1,39 @@
+2026-03-28 16:01:22,409 - owl-backend - INFO - OpenAI API Key loaded (length: 164)
+2026-03-28 16:01:22,432 - owl-backend - INFO - ElevenLabs API Key loaded (suffix: ...b48c)
+INFO:     Started server process [3369]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8001 (Press CTRL+C to quit)
+2026-03-28 16:01:27,019 - owl-backend - INFO - 🚀 GET /
+2026-03-28 16:01:27,020 - owl-backend - INFO - ✅ GET / - 200
+INFO:     127.0.0.1:63100 - "GET / HTTP/1.1" 200 OK
+2026-03-28 16:14:00,225 - owl-backend - INFO - 🚀 POST /upload-pdf
+2026-03-28 16:14:00,354 - owl-backend - INFO - ✅ POST /upload-pdf - 200
+INFO:     127.0.0.1:63268 - "POST /upload-pdf HTTP/1.1" 200 OK
+2026-03-28 16:14:00,365 - owl-backend - INFO - 🚀 POST /summarize
+2026-03-28 16:14:00,368 - owl-backend - INFO - ✅ POST /summarize - 422
+INFO:     127.0.0.1:63268 - "POST /summarize HTTP/1.1" 422 Unprocessable Content
+2026-03-28 16:14:03,975 - owl-backend - INFO - 🚀 POST /upload-pdf
+2026-03-28 16:14:04,094 - owl-backend - INFO - ✅ POST /upload-pdf - 200
+INFO:     127.0.0.1:63268 - "POST /upload-pdf HTTP/1.1" 200 OK
+2026-03-28 16:14:04,105 - owl-backend - INFO - 🚀 POST /summarize
+2026-03-28 16:14:04,107 - owl-backend - INFO - ✅ POST /summarize - 422
+INFO:     127.0.0.1:63268 - "POST /summarize HTTP/1.1" 422 Unprocessable Content
+2026-03-28 16:14:05,425 - owl-backend - INFO - 🚀 POST /upload-pdf
+2026-03-28 16:14:05,546 - owl-backend - INFO - ✅ POST /upload-pdf - 200
+INFO:     127.0.0.1:63268 - "POST /upload-pdf HTTP/1.1" 200 OK
+2026-03-28 16:14:05,557 - owl-backend - INFO - 🚀 POST /summarize
+2026-03-28 16:14:05,558 - owl-backend - INFO - ✅ POST /summarize - 422
+INFO:     127.0.0.1:63268 - "POST /summarize HTTP/1.1" 422 Unprocessable Content
+2026-03-28 16:26:47,082 - owl-backend - INFO - 🚀 POST /upload-pdf
+2026-03-28 16:26:47,202 - owl-backend - INFO - ✅ POST /upload-pdf - 200
+INFO:     127.0.0.1:63388 - "POST /upload-pdf HTTP/1.1" 200 OK
+2026-03-28 16:26:47,213 - owl-backend - INFO - 🚀 POST /summarize
+2026-03-28 16:26:47,214 - owl-backend - INFO - ✅ POST /summarize - 422
+INFO:     127.0.0.1:63388 - "POST /summarize HTTP/1.1" 422 Unprocessable Content
+2026-03-28 16:26:48,978 - owl-backend - INFO - 🚀 POST /upload-pdf
+2026-03-28 16:26:49,091 - owl-backend - INFO - ✅ POST /upload-pdf - 200
+INFO:     127.0.0.1:63388 - "POST /upload-pdf HTTP/1.1" 200 OK
+2026-03-28 16:26:49,103 - owl-backend - INFO - 🚀 POST /summarize
+2026-03-28 16:26:49,104 - owl-backend - INFO - ✅ POST /summarize - 422
+INFO:     127.0.0.1:63388 - "POST /summarize HTTP/1.1" 422 Unprocessable Content
