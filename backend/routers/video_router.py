@@ -1,6 +1,7 @@
 import os
 from fastapi import APIRouter, HTTPException, Form
-from services.ai_service import generate_shorts_script
+from typing import Optional
+from services.ai_service import generate_shorts_script, generate_music_prompt
 from services.podcast_service import synthesize_audio_elevenlabs
 from services.video_service import generate_short_video
 from config import logger
@@ -10,7 +11,7 @@ router = APIRouter(tags=["Video Features"])
 @router.post("/generate-short-video")
 async def generate_short_video_endpoint(
     text: str = Form(...),
-    music_prompt: str = Form("chill lo-fi hip hop")
+    music_prompt: Optional[str] = Form(None)
 ):
     """Generates a funny, high-energy educational short video (MP4)."""
     logger.info("🎬 Video generation request received.")
@@ -20,34 +21,43 @@ async def generate_short_video_endpoint(
         script_text = script_data["script"]
         
         # 2. Synthesize High-Energy Audio
-        # Parse the script into lines for the Duo synthesizer
-        # (Assuming the script is already formatted or we treat it as Alex's narration for simplicity)
-        # Actually, let's treat it as a single high-energy narration for the 'Short' format
-        # or parse it if it has 'Alex:' / 'Jamie:' tags.
-        from models import Line
+        from models import PodcastScript, PodcastScriptLine
         lines = []
         for l in script_text.split('\n'):
             if ':' in l:
-                speaker, content = l.split(':', 1)
-                lines.append(Line(speaker=speaker.strip(), content=content.strip()))
+                parts = l.split(':', 1)
+                lines.append(PodcastScriptLine(speaker=parts[0].strip(), content=parts[1].strip()))
             elif l.strip():
-                lines.append(Line(speaker="Alex", content=l.strip()))
+                lines.append(PodcastScriptLine(speaker="Alex", content=l.strip()))
 
-        audio_res = await synthesize_audio_elevenlabs(lines)
-        audio_path = audio_res["audio_path"]
+        # Create script object and output path
+        import uuid
+        from config import PODCASTS_DIR
+        script_obj = PodcastScript(title="Short Script", lines=lines)
+        output_filename = f"short_{uuid.uuid4().hex}.mp3"
+        output_full_path = os.path.join(PODCASTS_DIR, output_filename)
+
+        await synthesize_audio_elevenlabs(script_obj, output_path=output_full_path, mode="solo")
 
         # 3. Assemble Video
-        video_path = generate_short_video(
-            audio_path=audio_path,
-            script_title="Short Éducatif: " + script_text[:30],
+        if not music_prompt:
+            logger.info("🎼 No manual music prompt provided, auto-extracting from content...")
+            music_prompt = await generate_music_prompt(text)
+
+        video_full_path = generate_short_video(
+            audio_path=output_full_path,
+            script_title="Short Education: " + script_text[:30],
             music_prompt=music_prompt
         )
 
-        relative_video_path = "/" + video_path
+        # Convert full paths to relative URLs
+        relative_video_path = "/" + os.path.relpath(video_full_path, start=os.path.join(os.getcwd(), "backend"))
+        relative_audio_path = "/static/podcasts/" + output_filename
+
         return {
             "video_url": relative_video_path,
             "script": script_text,
-            "audio_url": audio_res["audio_url"]
+            "audio_url": relative_audio_path
         }
 
     except Exception as e:

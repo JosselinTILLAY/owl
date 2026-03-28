@@ -9,8 +9,8 @@ OWL est un plugin pour [Moodle](https://moodle.org), un LMS utilisé dans de nom
 
 ## 🍱 Modules de Fonctionnalités
 
-*   **🎙️ Podcast Studio :** Transformez vos PDFs en conversations naturelles entre deux étudiants IA (Alex & Jamie).
-*   **📝 Résumé de Cours :** Générez des chapitres structurés en markdown avec un support complet de **LaTeX** pour les formules mathématiques.
+*   **🎙️ Podcast Studio :** Transformez vos PDFs en conversations naturelles.
+*   **📝 Résumé de Cours :** Générez des chapitres structurés en markdown avec un support complet.
 *   **🧠 Générateur de QCM :** Questions à choix multiples interactives pour l'auto-évaluation des étudiants.
 *   **🎞️ Vidéo Chill (Shorts) :** Vidéos éducatives dynamiques d'une minute avec musique **ElevenLabs** personnalisée et arrière-plan OWL Studio.
 *   **🎵 Musique AI :** Génération de musique autonome à partir de texte via ElevenLabs.

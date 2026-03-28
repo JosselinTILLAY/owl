@@ -22,3 +22,12 @@ class PodcastResponse(BaseModel):
     audio_url: str
     script: List[PodcastScriptLine]
     duration_estimate: str
+
+class JobResponse(BaseModel):
+    job_id: str
+
+class JobStatusResponse(BaseModel):
+    job_id: str
+    status: str
+    result: Optional[PodcastResponse] = None
+    error: Optional[str] = None

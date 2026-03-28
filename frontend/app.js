@@ -107,10 +107,16 @@ document.addEventListener('DOMContentLoaded', () => {
             genBody.append('mode', currentMode);
             genBody.append('provider', currentProvider);
             if (currentFeature === 'video') genBody.append('music_prompt', document.getElementById('music-prompt').value);
+            if (currentFeature === 'music') genBody.append('music_prompt', document.getElementById('music-prompt-standalone').value);
 
             const res = await fetch(`${BACKEND_URL}${features[currentFeature].endpoint}`, { method: 'POST', body: genBody });
             if (!res.ok) throw new Error('AI generation failed');
-            const data = await res.json();
+            let data = await res.json();
+
+            // If it's an async job, poll for results
+            if (data.job_id && currentFeature === 'podcast') {
+                data = await pollJobStatus(data.job_id);
+            }
 
             // 3. Render Output
             renderOutput(currentFeature, data);
@@ -123,6 +129,26 @@ document.addEventListener('DOMContentLoaded', () => {
             generateBtn.disabled = false;
         }
     });
+
+    async function pollJobStatus(jobId) {
+        const pollInterval = 2000;
+        while (true) {
+            const res = await fetch(`${BACKEND_URL}/podcast/job/${jobId}`);
+            if (!res.ok) throw new Error('Failed to check job status');
+            
+            const job = await res.json();
+            if (job.status === 'completed') {
+                return job.result;
+            } else if (job.status === 'failed') {
+                throw new Error(job.error || 'Podcast generation failed');
+            }
+            
+            // Update UI with status
+            loadingText.textContent = `Podcast status: ${job.status.charAt(0).toUpperCase() + job.status.slice(1)}...`;
+            
+            await new Promise(resolve => setTimeout(resolve, pollInterval));
+        }
+    }
 
     function renderOutput(feature, data) {
         document.querySelectorAll('.result-outlet').forEach(o => o.classList.add('hidden'));

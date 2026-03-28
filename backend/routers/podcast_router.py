@@ -2,8 +2,9 @@ import uuid
 import shutil
 import os
 from datetime import datetime
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form
-from models import PodcastResponse
+from typing import Dict
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, BackgroundTasks
+from models import PodcastResponse, JobResponse, JobStatusResponse
 from config import logger, PODCASTS_DIR, STATIC_DIR
 from utils import extract_text_from_pdf
 from services.podcast_service import (
@@ -13,6 +14,50 @@ from services.podcast_service import (
 )
 
 router = APIRouter(tags=["Podcast Generation"])
+
+# In-memory storage for jobs
+jobs: Dict[str, JobStatusResponse] = {}
+
+async def background_generate_podcast(
+    job_id: str,
+    text: str,
+    mode: str,
+    provider: str
+):
+    """Background task to generate podcast script and audio."""
+    logger.info(f"Background job {job_id} started: mode={mode}, provider={provider}")
+    jobs[job_id].status = "processing"
+    
+    try:
+        # 1. Generate Script
+        script = generate_podcast_script_content(text, mode=mode)
+        
+        # 2. Synthesize Audio
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"podcast_{timestamp}.mp3"
+        output_path = os.path.join(PODCASTS_DIR, filename)
+        
+        if provider == "elevenlabs":
+            await synthesize_audio_elevenlabs(script, output_path, mode=mode)
+        else:
+            await synthesize_audio_openai(script, output_path)
+        
+        audio_url = f"/static/podcasts/{filename}"
+        result = PodcastResponse(
+            title=script.title,
+            audio_url=audio_url,
+            script=script.lines,
+            duration_estimate="2 minutes"
+        )
+        
+        jobs[job_id].status = "completed"
+        jobs[job_id].result = result
+        logger.info(f"Background job {job_id} completed successfully.")
+        
+    except Exception as e:
+        logger.error(f"Background job {job_id} failed: {str(e)}")
+        jobs[job_id].status = "failed"
+        jobs[job_id].error = str(e)
 
 @router.post("/upload-pdf")
 async def upload_pdf_file(file: UploadFile = File(...)):
@@ -31,36 +76,28 @@ async def upload_pdf_file(file: UploadFile = File(...)):
         logger.error(f"PDF extraction failed: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to extract text from PDF.")
 
-@router.post("/generate-podcast", response_model=PodcastResponse)
+@router.post("/generate-podcast", response_model=JobResponse)
 async def generate_podcast_audio(
+    background_tasks: BackgroundTasks,
     text: str = Form(...), 
     mode: str = Form("duo"), 
     provider: str = Form("openai")
 ):
-    """Generates a podcast MP3 from the provided text."""
-    logger.info(f"Podcast generation requested: mode={mode}, provider={provider}")
+    """Starts a background job to generate a podcast MP3 from the provided text."""
+    job_id = str(uuid.uuid4())
+    logger.info(f"Podcast generation job created: {job_id} (mode={mode}, provider={provider})")
     
-    try:
-        # 1. Generate Script
-        script = generate_podcast_script_content(text, mode=mode)
-        
-        # 2. Synthesize Audio
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"podcast_{timestamp}.mp3"
-        output_path = os.path.join(PODCASTS_DIR, filename)
-        
-        if provider == "elevenlabs":
-            await synthesize_audio_elevenlabs(script, output_path, mode=mode)
-        else:
-            await synthesize_audio_openai(script, output_path)
-        
-        audio_url = f"/static/podcasts/{filename}"
-        return PodcastResponse(
-            title=script.title,
-            audio_url=audio_url,
-            script=script.lines,
-            duration_estimate="2 minutes"
-        )
-    except Exception as e:
-        logger.error(f"Podcast generation failed: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+    # Initialize job status
+    jobs[job_id] = JobStatusResponse(job_id=job_id, status="pending")
+    
+    # Add to background tasks
+    background_tasks.add_task(background_generate_podcast, job_id, text, mode, provider)
+    
+    return JobResponse(job_id=job_id)
+
+@router.get("/podcast/job/{job_id}", response_model=JobStatusResponse)
+async def get_podcast_job_status(job_id: str):
+    """Retrieves the status and result of a podcast generation job."""
+    if job_id not in jobs:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return jobs[job_id]

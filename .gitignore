@@ -8,6 +8,8 @@ backend/.venv
 # Credentials
 backend/.env
 
+backend/static
+
 # Sys files
 .DS_Store
 Thumbs.db
@@ -19,3 +21,7 @@ Thumbs.db
 *.swo
 
 README.md.local
+
+*.pyc
+*.mp3
+*.pdf

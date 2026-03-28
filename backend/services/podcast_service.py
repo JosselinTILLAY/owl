@@ -6,7 +6,7 @@ from pydub import AudioSegment
 from config import (
     client, logger, PODCASTS_DIR, ELEVEN_LABS_API_KEY,
     ELEVEN_LABS_MODEL_ID, ELEVEN_LABS_VOICE_ID_ALEX, ELEVEN_LABS_VOICE_ID_JAMIE,
-    FFMPEG_PATH, FFPROBE_PATH, OPENAI_MODEL_ID
+    FFMPEG_PATH, FFPROBE_PATH, OPENAI_MODEL_ID, PROMPTS
 )
 from models import PodcastScript
 
@@ -22,35 +22,15 @@ def generate_podcast_script_content(
 ) -> PodcastScript:
     """Generates a podcast script from text content using OpenAI."""
     
-    if mode == "solo":
-        system_prompt = (
-            "You are a dynamic educational content creator. "
-            "Your goal is to transform the provided text into a 2-minute 'Crash Course' style solo narration in ENGLISH. "
-            "IMPORTANT: Use ONLY information from the text provided. "
-            "Stay cool, fast, and engaging for students. "
-            "Speak directly to the audience ('you'). The tone should be accessible and modern. "
-            "Format your response as JSON with a title and a list of lines (speaker 'Narrator')."
-        )
-    else:
-        system_prompt = (
-            "You are two students, Alex and Jamie, discussing a course. "
-            "Alex is super energetic and curious, Jamie is more calm and pedagogical. "
-            "Your goal is to discuss the provided text in a 3-minute 'Coffee Break' conversation format in ENGLISH. "
-            "IMPORTANT: Develop the concepts well. Be pedagogical. "
-            "Generate about 15 to 25 lines of dialogue to cover all content. "
-            "Use ONLY information from the text provided. "
-            "The tone should be 'cool student': accessible, with natural student-like expressions, "
-            "while remaining very clear on technical concepts. "
-            "Use natural reactions ('oh really?', 'exactly!', 'I see'). "
-            "Format your response as JSON with a list of lines (Alex and Jamie)."
-        )
-
     try:
+        system_prompt = PROMPTS['podcast'][mode]['system']
+        user_prompt = PROMPTS['podcast']['user_template'].format(text=text_content[:15000])
+
         response = client.beta.chat.completions.parse(
             model=OPENAI_MODEL_ID,
             messages=[
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": f"Voici le contenu à transformer en podcast étudiant :\n\n{text_content[:15000]}"}
+                {"role": "user", "content": user_prompt}
             ],
             response_format=PodcastScript
         )
