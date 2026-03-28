@@ -1,1 +1,17 @@
 moodledata/
+
+# Venv
+backend/.venv
+
+# Credentials
+backend/.env
+
+# Sys files
+.DS_Store
+Thumbs.db
+
+# IDE 
+.idea/
+.vscode/
+*.swp
+*.swo
