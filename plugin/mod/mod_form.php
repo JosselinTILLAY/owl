@@ -6,7 +6,7 @@ require_once($CFG->dirroot . '/course/moodleform_mod.php');
 class mod_owl_mod_form extends moodleform_mod {
 
     public function definition() {
-        global $COURSE, $PAGE;
+        global $COURSE, $DB, $PAGE;
         $mform = $this->_form;
 
         // Type de génération — placé AVANT le nom pour que le JS puisse l'écouter
@@ -85,6 +85,19 @@ class mod_owl_mod_form extends moodleform_mod {
 
         // Éléments standard Moodle (visible, groupe, etc.)
         $this->standard_coursemodule_elements();
+
+        // Remplace le champ section caché par un sélecteur visible positionné sous le type
+        $mform->removeElement('section');
+        $rawsections = $DB->get_records('course_sections', ['course' => $COURSE->id], 'section ASC', 'section, name');
+        $sections = [];
+        foreach ($rawsections as $sec) {
+            $sections[$sec->section] = $sec->name ?: get_string('section') . ' ' . $sec->section;
+        }
+        $sectionel = $mform->createElement('select', 'section', get_string('form_section', 'mod_owl'), $sections);
+        $mform->insertElementBefore($sectionel, 'general');
+        $mform->setType('section', PARAM_INT);
+        $mform->setDefault('section', $this->current->section ?? 0);
+
         $this->add_action_buttons();
     }
 

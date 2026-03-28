@@ -20,7 +20,13 @@ class block_owl extends block_base {
         $this->content = new stdClass();
         $this->content->footer = '';
 
-        $generateurl = new moodle_url('/blocks/owl/generate.php', ['courseid' => $COURSE->id]);
+        $generateurl = new moodle_url('/course/modedit.php', [
+            'add'     => 'owl',
+            'type'    => 0,
+            'course'  => $COURSE->id,
+            'section' => 0,
+            'return'  => 0,
+        ]);
 
         $this->content->text = html_writer::link(
             $generateurl,

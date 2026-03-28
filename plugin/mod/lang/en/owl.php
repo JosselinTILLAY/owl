@@ -15,6 +15,7 @@ $string['type_video']   = 'Vidéo';
 $string['type_qcm']     = 'QCM';
 
 // Formulaire
+$string['form_section']              = 'Section du cours';
 $string['form_prompt']               = 'Prompt (optionnel)';
 $string['form_prompt_help']          = 'Décrivez ce que vous souhaitez générer, les points à couvrir, le ton, le public cible, etc.';
 $string['form_course_resources']     = 'Ressources du cours';
