@@ -24,11 +24,21 @@ foreach ($rawsections as $sec) {
     $sections[$sec->id] = $label;
 }
 
+// Ressources existantes du cours (activités de type contenu)
+$allowed_modtypes = ['resource', 'page', 'label', 'url', 'folder'];
+$modinfo = get_fast_modinfo($course);
+$course_resources = [];
+foreach ($modinfo->cms as $cm) {
+    if (in_array($cm->modname, $allowed_modtypes) && $cm->uservisible) {
+        $course_resources[$cm->id] = '[' . $cm->modname . '] ' . $cm->name;
+    }
+}
+
 // Draft area pour le filemanager
 $draftitemid = file_get_submitted_draft_itemid('documents');
 file_prepare_draft_area($draftitemid, $context->id, 'block_owl', 'documents', 0);
 
-$form = new block_owl_generate_form(null, ['sections' => $sections]);
+$form = new block_owl_generate_form(null, ['sections' => $sections, 'course_resources' => $course_resources]);
 $form->set_data(['courseid' => $courseid, 'documents' => $draftitemid]);
 
 $returnurl = new moodle_url('/course/view.php', ['id' => $courseid]);
