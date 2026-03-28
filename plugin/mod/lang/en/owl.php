@@ -30,8 +30,11 @@ $string['status_done']     = 'Terminé';
 $string['status_error']    = 'Erreur';
 
 // Page de résultat (view.php)
-$string['pending_message'] = 'Votre contenu est en cours de génération. Cela peut prendre quelques minutes.';
-$string['pending_hint']    = 'Le contenu sera automatiquement ajouté à votre cours dès qu\'il sera prêt.';
+$string['pending_message']    = 'Votre contenu est en cours de génération. Cela peut prendre quelques minutes.';
+$string['pending_hint']       = 'Le contenu sera automatiquement ajouté à votre cours dès qu\'il sera prêt.';
+$string['generating_message'] = 'Votre podcast est en cours de génération.';
+$string['generating_hint']    = 'Cette étape peut prendre quelques minutes. La page se rafraîchira automatiquement.';
+$string['podcast_failed']     = 'La génération du podcast a échoué. Veuillez contacter un administrateur.';
 
 // index.php
 $string['no_instances'] = 'Aucune génération Owl dans ce cours.';

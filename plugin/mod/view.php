@@ -18,14 +18,28 @@ $PAGE->set_pagelayout('incourse');
 echo $OUTPUT->header();
 echo $OUTPUT->heading(format_string($owl->name));
 
-if ($owl->status === 'pending') {
+if ($owl->status === 'podcast_ready' && !empty($owl->podcast_url)) {
+    echo html_writer::tag('audio', '', [
+        'controls'    => 'controls',
+        'src'         => $owl->podcast_url,
+        'style'       => 'width:100%;margin-top:1em;',
+    ]);
+} else if ($owl->status === 'podcast_failed') {
     echo html_writer::div(
-        html_writer::tag('p', get_string('pending_message', 'mod_owl')) .
-        html_writer::tag('p', get_string('pending_hint', 'mod_owl')),
-        'alert alert-info'
+        html_writer::tag('p', get_string('podcast_failed', 'mod_owl')),
+        'alert alert-danger'
     );
 } else {
-    // TODO: afficher le contenu généré selon $owl->type
+    // pending / ready / generating : afficher le message d'attente et rafraîchir
+    $message = in_array($owl->status, ['ready', 'generating'])
+        ? get_string('generating_message', 'mod_owl') . html_writer::tag('p', get_string('generating_hint', 'mod_owl'))
+        : get_string('pending_message', 'mod_owl') . html_writer::tag('p', get_string('pending_hint', 'mod_owl'));
+
+    echo html_writer::div(html_writer::tag('p', $message), 'alert alert-info');
+
+    $PAGE->requires->js_amd_inline("
+        setTimeout(function() { window.location.reload(); }, 15000);
+    ");
 }
 
 echo $OUTPUT->footer();
