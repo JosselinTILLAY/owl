@@ -1,9 +1,9 @@
 import uuid
 import shutil
 import os
-from datetime import datetime
 from typing import Dict
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form, BackgroundTasks
+from fastapi.responses import FileResponse
 from models import PodcastResponse, JobResponse, JobStatusResponse
 from config import logger, PODCASTS_DIR, STATIC_DIR
 from utils import extract_text_from_pdf
@@ -33,8 +33,7 @@ async def background_generate_podcast(
         script = generate_podcast_script_content(text, mode=mode)
         
         # 2. Synthesize Audio
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"podcast_{timestamp}.mp3"
+        filename = f"{job_id}.mp3"
         output_path = os.path.join(PODCASTS_DIR, filename)
         
         if provider == "elevenlabs":
@@ -101,3 +100,15 @@ async def get_podcast_job_status(job_id: str):
     if job_id not in jobs:
         raise HTTPException(status_code=404, detail="Job not found")
     return jobs[job_id]
+
+@router.get("/podcast/job/{job_id}/audio")
+async def download_podcast_audio(job_id: str):
+    """Downloads the generated podcast audio file directly."""
+    if job_id not in jobs:
+        raise HTTPException(status_code=404, detail="Job not found")
+    if jobs[job_id].status != "completed":
+        raise HTTPException(status_code=404, detail="Audio not ready")
+    file_path = os.path.join(PODCASTS_DIR, f"{job_id}.mp3")
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="Audio file not found")
+    return FileResponse(file_path, media_type="audio/mpeg", filename=f"{job_id}.mp3")

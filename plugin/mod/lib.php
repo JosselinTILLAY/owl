@@ -80,6 +80,26 @@ function owl_delete_instance($id) {
     return true;
 }
 
+function mod_owl_pluginfile($course, $cm, $context, $filearea, $args, $forcedownload, array $options = []) {
+    require_login($course, true, $cm);
+
+    if ($filearea !== 'podcast' && $filearea !== 'documents') {
+        return false;
+    }
+
+    $itemid   = array_shift($args);
+    $filename = array_pop($args);
+    $filepath = $args ? '/' . implode('/', $args) . '/' : '/';
+
+    $fs   = get_file_storage();
+    $file = $fs->get_file($context->id, 'mod_owl', $filearea, $itemid, $filepath, $filename);
+    if (!$file) {
+        return false;
+    }
+
+    send_stored_file($file, 0, 0, $forcedownload, $options);
+}
+
 function owl_supports($feature) {
     switch ($feature) {
         case FEATURE_MOD_INTRO:

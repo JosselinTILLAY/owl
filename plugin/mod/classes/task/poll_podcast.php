@@ -68,14 +68,56 @@ class poll_podcast extends \core\task\adhoc_task {
 
         switch ($result->status) {
             case 'completed':
-                if (empty($result->result->audio_url)) {
-                    mtrace("owl poll_podcast: statut completed mais audio_url absent, abandon.");
+                $audioendpoint = owl_get_backend_url() . '/podcast/job/' . urlencode($jobid) . '/audio';
+                mtrace("owl poll_podcast: téléchargement du fichier audio depuis {$audioendpoint}");
+
+                $tmpfile = tempnam($CFG->tempdir ?? sys_get_temp_dir(), 'owl_podcast_');
+                $fh = fopen($tmpfile, 'wb');
+                $ch = curl_init($audioendpoint);
+                curl_setopt_array($ch, [
+                    CURLOPT_FILE    => $fh,
+                    CURLOPT_TIMEOUT => 120,
+                ]);
+                curl_exec($ch);
+                $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                $curlerr  = curl_error($ch);
+                curl_close($ch);
+                fclose($fh);
+
+                if ($curlerr || $httpcode !== 200) {
+                    unlink($tmpfile);
+                    mtrace("owl poll_podcast: échec du téléchargement audio (HTTP {$httpcode}, err={$curlerr}), abandon.");
                     $DB->set_field('owl', 'status', 'podcast_failed', ['id' => $instanceid]);
                     return;
                 }
-                $DB->set_field('owl', 'podcast_url', $result->result->audio_url, ['id' => $instanceid]);
+
+                // Store the file in Moodle's file system.
+                $cm      = get_coursemodule_from_instance('owl', $instanceid, 0, false, MUST_EXIST);
+                $context = \context_module::instance($cm->id);
+                $fs      = get_file_storage();
+
+                // Remove any previous podcast file for this instance.
+                $fs->delete_area_files($context->id, 'mod_owl', 'podcast', $instanceid);
+
+                $audiofilename = $jobid . '.mp3';
+                $filerecord = [
+                    'contextid' => $context->id,
+                    'component' => 'mod_owl',
+                    'filearea'  => 'podcast',
+                    'itemid'    => $instanceid,
+                    'filepath'  => '/',
+                    'filename'  => $audiofilename,
+                ];
+                $fs->create_file_from_pathname($filerecord, $tmpfile);
+                unlink($tmpfile);
+
+                $podcasturl = \moodle_url::make_pluginfile_url(
+                    $context->id, 'mod_owl', 'podcast', $instanceid, '/', $audiofilename
+                )->out();
+
+                $DB->set_field('owl', 'podcast_url', $podcasturl, ['id' => $instanceid]);
                 $DB->set_field('owl', 'status', 'podcast_ready', ['id' => $instanceid]);
-                mtrace("owl poll_podcast: podcast prêt, audio_url={$result->result->audio_url}");
+                mtrace("owl poll_podcast: podcast stocké dans Moodle, url={$podcasturl}");
                 break;
 
             case 'failed':
