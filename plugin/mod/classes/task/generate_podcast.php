@@ -34,7 +34,7 @@ class generate_podcast extends \core\task\adhoc_task {
                 'provider' => 'openai',
             ]),
             CURLOPT_HTTPHEADER     => ['Content-Type: application/x-www-form-urlencoded'],
-            CURLOPT_TIMEOUT        => 300,
+            CURLOPT_TIMEOUT        => 30,
         ]);
 
         $response = curl_exec($ch);
@@ -53,13 +53,19 @@ class generate_podcast extends \core\task\adhoc_task {
         }
 
         $result = json_decode($response);
-        if (!$result || empty($result->audio_url)) {
-            mtrace("owl generate_podcast: réponse invalide ou audio_url manquant.");
+        if (!$result || empty($result->job_id)) {
+            mtrace("owl generate_podcast: réponse invalide ou job_id manquant.");
             return;
         }
 
-        $DB->set_field('owl', 'podcast_url', $result->audio_url, ['id' => $instanceid]);
-        $DB->set_field('owl', 'status', 'podcast_ready', ['id' => $instanceid]);
-        mtrace("owl generate_podcast: podcast généré, audio_url={$result->audio_url}");
+        $DB->set_field('owl', 'podcast_job_id', $result->job_id, ['id' => $instanceid]);
+        $DB->set_field('owl', 'status', 'generating', ['id' => $instanceid]);
+        mtrace("owl generate_podcast: job soumis, job_id={$result->job_id}");
+
+        $task = new \mod_owl\task\poll_podcast();
+        $task->set_custom_data(['instanceid' => $instanceid, 'job_id' => $result->job_id]);
+        $task->set_next_run_time(time() + 30);
+        \core\task\manager::queue_adhoc_task($task);
+        mtrace("owl generate_podcast: tâche poll_podcast enfilée.");
     }
 }
