@@ -22,6 +22,8 @@ Thumbs.db
 
 README.md.local
 
+static/
+
 *.pyc
 *.mp3
 *.pdf
