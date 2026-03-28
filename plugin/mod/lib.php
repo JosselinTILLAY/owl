@@ -1,6 +1,8 @@
 <?php
 defined('MOODLE_INTERNAL') || die();
 
+require_once(__DIR__ . '/locallib.php');
+
 function owl_add_instance($data, $mform = null) {
     global $DB;
 
@@ -30,10 +32,11 @@ function owl_add_instance($data, $mform = null) {
             $instanceid,
             ['subdirs' => 0, 'maxfiles' => 20]
         );
-    }
 
-    // TODO: déclencher la génération IA
-    // owl_trigger_generation($instanceid, $data);
+        $task = new \mod_owl\task\upload_pdfs();
+        $task->set_custom_data(['instanceid' => $instanceid, 'contextid' => $context->id]);
+        \core\task\manager::queue_adhoc_task($task);
+    }
 
     return $instanceid;
 }
@@ -56,6 +59,10 @@ function owl_update_instance($data, $mform = null) {
             $data->id,
             ['subdirs' => 0, 'maxfiles' => 20]
         );
+
+        $task = new \mod_owl\task\upload_pdfs();
+        $task->set_custom_data(['instanceid' => $data->id, 'contextid' => $context->id]);
+        \core\task\manager::queue_adhoc_task($task);
     }
 
     return $result;
