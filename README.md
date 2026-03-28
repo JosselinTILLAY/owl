@@ -28,7 +28,7 @@ OWL est un plugin pour [Moodle](https://moodle.org), un LMS utilisé dans de nom
 Copiez le modèle d'environnement et remplissez vos clés :
 ```bash
 cd backend
-cp .env.copy .env
+cp .env.example .env
 # Modifiez .env avec vos clés API
 ```
 
