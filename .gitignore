@@ -27,3 +27,5 @@ static/
 *.pyc
 *.mp3
 *.pdf
+
+__pycache__/
