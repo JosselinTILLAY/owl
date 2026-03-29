@@ -20,14 +20,10 @@ class mod_owl_mod_form extends moodleform_mod {
         $mform->setDefault('type', 'podcast');
 
         // En-tête général + Nom (sans required — fallback dans owl_add_instance)
-        $mform->addElement('header', 'general', get_string('general', 'form'));
+        
         $mform->addElement('text', 'name', get_string('name'), ['size' => '64']);
         $mform->addRule('name', get_string('maximumchars', '', 255), 'maxlength', 255, 'client');
         $mform->setType('name', PARAM_TEXT);
-
-        // Description (intro)
-        $mform->addElement('editor', 'introeditor', get_string('moduleintro'), null, ['maxfiles' => EDITOR_UNLIMITED_FILES, 'noclean' => true, 'context' => $this->context, 'subdirs' => true]);
-        $mform->setType('introeditor', PARAM_RAW);
 
         // JS : auto-remplit le nom selon le type si le prof ne l'a pas saisi manuellement
         $typelabels = json_encode([
@@ -84,9 +80,18 @@ class mod_owl_mod_form extends moodleform_mod {
             'accepted_types' => ['.pdf', '.doc', '.docx', '.txt', '.ppt', '.pptx', '.odt', '.odp'],
         ];
         $mform->addElement('filemanager', 'documents', get_string('form_documents', 'mod_owl'), null, $options);
-
+        $mform->addElement('header', 'general', get_string('general', 'form'));
         // Éléments standard Moodle (visible, groupe, etc.)
         $this->standard_coursemodule_elements();
+
+        // Cache les sections indésirables via CSS
+        $PAGE->requires->js_amd_inline("
+            require([], function() {
+                var style = document.createElement('style');
+                style.textContent = '#id_modstandardelshdr, #id_restrictshdr, #id_completionhdr, #id_tagshdr, #id_competencieshdr, #id_availabilityconditionsheader, #id_activitycompletionheader, #id_competenciessection, #id_general, .expandall, .secondary-navigation { display: none !important; }';
+                document.head.appendChild(style);
+            });
+        ");
 
         // Remplace le champ section caché par un sélecteur visible positionné sous le type
         $mform->removeElement('section');
