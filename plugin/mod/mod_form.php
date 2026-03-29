@@ -9,15 +9,24 @@ class mod_owl_mod_form extends moodleform_mod {
         global $COURSE, $DB, $PAGE;
         $mform = $this->_form;
 
-        // Type de génération — placé AVANT le nom pour que le JS puisse l'écouter
+        // Type de génération — select caché + boutons visuels synchronisés
         $types = [
             'podcast' => get_string('type_podcast',  'mod_owl'),
             'video'   => get_string('type_video',    'mod_owl'),
             'qcm'     => get_string('type_qcm',      'mod_owl'),
             'summary' => get_string('type_summary',  'mod_owl'),
+            'discussion' => get_string('type_discussion', 'mod_owl'),
         ];
         $mform->addElement('select', 'type', get_string('form_type', 'mod_owl'), $types);
+        $mform->setType('type', PARAM_ALPHA);
         $mform->setDefault('type', 'podcast');
+
+        // Boutons visuels (le select reste caché, c'est lui qui est soumis)
+        $btns = '';
+        foreach ($types as $value => $label) {
+            $btns .= '<button type="button" class="owl-type-btn" data-value="' . s($value) . '">' . s($label) . '</button>';
+        }
+        $mform->addElement('html', '<div id="owl-type-btns">' . $btns . '</div>');
 
         // En-tête général + Nom (sans required — fallback dans owl_add_instance)
         
@@ -31,21 +40,33 @@ class mod_owl_mod_form extends moodleform_mod {
             'video'   => get_string('type_video',    'mod_owl'),
             'qcm'     => get_string('type_qcm',      'mod_owl'),
             'summary' => get_string('type_summary',  'mod_owl'),
+            'discussion' => get_string('type_discussion', 'mod_owl'),
         ]);
         $PAGE->requires->js_amd_inline("
             require(['jquery'], function(\$) {
                 var labels   = $typelabels;
                 var nameEl   = \$('#id_name');
-                var typeEl   = \$('#id_type');
+                var selectEl = \$('#id_type');
+                var btns     = \$('#owl-type-btns .owl-type-btn');
                 var autoFill = nameEl.val() === '';
+
+                function updateActive(val) {
+                    btns.each(function() {
+                        \$(this).toggleClass('owl-type-active', \$(this).data('value') === val);
+                    });
+                }
+
+                btns.on('click', function() {
+                    var val = \$(this).data('value');
+                    selectEl.val(val);
+                    updateActive(val);
+                    if (autoFill) { nameEl.val(labels[val] || ''); }
+                });
 
                 nameEl.on('input', function() { autoFill = false; });
 
-                typeEl.on('change', function() {
-                    if (autoFill) { nameEl.val(labels[typeEl.val()] || ''); }
-                });
-
-                if (autoFill) { nameEl.val(labels[typeEl.val()] || ''); }
+                updateActive(selectEl.val());
+                if (autoFill) { nameEl.val(labels[selectEl.val()] || ''); }
             });
         ");
 
@@ -58,26 +79,27 @@ class mod_owl_mod_form extends moodleform_mod {
                 $course_resources[$cm->id] = '[' . $cm->modname . '] ' . $cm->name;
             }
         }
-        if (!empty($course_resources)) {
-            $mform->addElement(
-                'autocomplete',
-                'course_resources',
-                get_string('form_course_resources', 'mod_owl'),
-                $course_resources,
-                ['multiple' => true, 'noselectionstring' => get_string('form_course_resources_none', 'mod_owl')]
-            );
-        }
 
         // Prompt
         $mform->addElement('textarea', 'prompt', get_string('form_prompt', 'mod_owl'), ['rows' => 4, 'cols' => 60]);
         $mform->setType('prompt', PARAM_TEXT);
         $mform->addHelpButton('prompt', 'form_prompt', 'mod_owl');
 
+        if (!empty($course_resources)) {
+          $mform->addElement(
+              'autocomplete',
+              'course_resources',
+              get_string('form_course_resources', 'mod_owl'),
+              $course_resources,
+              ['multiple' => true, 'noselectionstring' => get_string('form_course_resources_none', 'mod_owl')]
+          );
+      }
+
         // Upload de documents
         $options = [
-            'subdirs'        => 0,
-            'maxfiles'       => 20,
-            'accepted_types' => ['.pdf', '.doc', '.docx', '.txt', '.ppt', '.pptx', '.odt', '.odp'],
+            // 'subdirs'        => 0,
+            // 'maxfiles'       => 20,
+            // 'accepted_types' => ['.pdf', '.doc', '.docx', '.txt', '.ppt', '.pptx', '.odt', '.odp'],
         ];
         $mform->addElement('filemanager', 'documents', get_string('form_documents', 'mod_owl'), null, $options);
         $mform->addElement('header', 'general', get_string('general', 'form'));
@@ -88,7 +110,15 @@ class mod_owl_mod_form extends moodleform_mod {
         $PAGE->requires->js_amd_inline("
             require([], function() {
                 var style = document.createElement('style');
-                style.textContent = '#id_modstandardelshdr, #id_restrictshdr, #id_completionhdr, #id_tagshdr, #id_competencieshdr, #id_availabilityconditionsheader, #id_activitycompletionheader, #id_competenciessection, #id_general, .expandall, .secondary-navigation { display: none !important; }';
+                style.textContent = [
+                    '#id_modstandardelshdr, #id_restrictshdr, #id_completionhdr, #id_tagshdr, #id_competencieshdr, #id_availabilityconditionsheader, #id_activitycompletionheader, #id_competenciessection, #id_general, .expandall, .secondary-navigation, .fp-restrictions, .fp-navbar { display: none !important; }',
+                    '#id_type { display: none !important; }',
+                    '#id_type ~ label { display: none !important; }',
+                    '.fitem:has(#id_type) .fitemtitle { display: none !important; }',
+                    '#owl-type-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }',
+                    '.owl-type-btn { padding: 6px 18px; border: 2px solid #0066cc; border-radius: 20px; background: none; color: #0066cc; font-weight: 500; cursor: pointer; transition: background 0.15s, color 0.15s; }',
+                    '.owl-type-btn.owl-type-active { background: #0066cc; color: #fff; }'
+                ].join(' ');
                 document.head.appendChild(style);
             });
         ");
