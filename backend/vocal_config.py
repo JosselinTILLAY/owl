@@ -1,19 +1,16 @@
 from config import (
     ELEVEN_LABS_MODEL_ID,
-    ELEVEN_LABS_VOICE_ID_ALEX,
-    ELEVEN_LABS_VOICE_ID_JAMIE
+    ELEVEN_LABS_VOICE_ID_OWL,
+    ELEVEN_LABS_VOICE_ID_BILLIE
 )
 
-# Voice Mappings for Owl & Billie personas
-# Owl = prof (voix homme), Billie = étudiante (voix femme)
+# Voice Mappings — Owl (Antoine) & Billie (Koraly)
 VOCAL_CONFIG = {
     "openai": {
         "model": "tts-1-hd",
         "voices": {
             "Owl": "onyx",        # Voix homme, prof charismatique
             "Billie": "nova",     # Voix femme, étudiante spontanée
-            "Alex": "onyx",       # Legacy fallback
-            "Jamie": "nova",      # Legacy fallback
             "Narrator": "alloy",
         },
         "speed": 1.1,
@@ -22,11 +19,9 @@ VOCAL_CONFIG = {
     "elevenlabs": {
         "model_id": ELEVEN_LABS_MODEL_ID,
         "voices": {
-            "Owl": ELEVEN_LABS_VOICE_ID_JAMIE,      # Voix homme
-            "Billie": ELEVEN_LABS_VOICE_ID_ALEX,     # Voix femme
-            "Alex": ELEVEN_LABS_VOICE_ID_JAMIE,      # Legacy fallback
-            "Jamie": ELEVEN_LABS_VOICE_ID_ALEX,      # Legacy fallback
-            "Narrator": "IKne3meq5aSn9XLyUdCD",
+            "Owl": ELEVEN_LABS_VOICE_ID_OWL,        # Antoine — Warm and fluid
+            "Billie": ELEVEN_LABS_VOICE_ID_BILLIE,   # Koraly — Virtual assistant
+            "Narrator": ELEVEN_LABS_VOICE_ID_OWL,
         },
         "default_settings": {
             "stability": 0.3,

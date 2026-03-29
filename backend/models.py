@@ -31,18 +31,14 @@ class PodcastResponse(BaseModel):
     script: List[PodcastScriptLine]
     duration_estimate: str
 
-class ExerciseOption(BaseModel):
-    key: str  # A, B, C, D
-    text: str
-
 class Exercise(BaseModel):
     question: str
-    options: List[ExerciseOption]
+    options: list[str]
     answer: str  # A, B, C ou D
     explanation: str
 
 class ExercisesResponse(BaseModel):
-    questions: List[Exercise]
+    questions: list[Exercise]
 
 class JobResponse(BaseModel):
     job_id: str

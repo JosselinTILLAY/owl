@@ -45,21 +45,28 @@ async def generate_summary(text: str) -> str:
         raise e
 
 
-async def generate_exercises(text: str) -> dict:
+
+async def generate_exercises(text: str) -> str:
     """Génère des QCM interactifs en JSON structuré."""
     logger.info(f"⚡ {OPENAI_MODEL_ID.upper()} Exercises requested (structured JSON).")
     try:
-        response = client.beta.chat.completions.parse(
+        response = client.chat.completions.create(
             model=OPENAI_MODEL_ID,
             messages=[
                 {"role": "system", "content": PROMPTS['exercises']['system']},
                 {"role": "user", "content": PROMPTS['exercises']['user'].replace("{text}", text)}
             ],
-            response_format=ExercisesResponse
+            response_format={
+              "type": "json_schema",
+              "json_schema": {
+                "name": "ExercisesResponse",
+                "schema": ExercisesResponse.model_json_schema()
+              }
+            }
         )
-        result = response.choices[0].message.parsed
-        logger.info(f"Exercise generation successful: {len(result.questions)} questions.")
-        return result.model_dump()
+        logger.info("Exercise generation successful.")
+        logger.info(response.choices[0].message.content)
+        return response.choices[0].message.content
     except Exception as e:
         logger.error(f"Exercise generation failed: {str(e)}")
         raise e

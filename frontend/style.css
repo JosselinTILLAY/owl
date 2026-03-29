@@ -548,6 +548,128 @@ audio, video {
     50% { opacity: 0; }
 }
 
+/* Summary Navigation */
+.summary-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.summary-nav-link {
+    padding: 6px 14px;
+    background: rgba(88, 166, 255, 0.1);
+    border: 1px solid rgba(88, 166, 255, 0.2);
+    border-radius: 20px;
+    color: var(--accent-primary);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.summary-nav-link:hover {
+    background: rgba(88, 166, 255, 0.2);
+    border-color: var(--accent-primary);
+}
+
+/* Accordion Sections */
+.accordion-section {
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.15);
+}
+
+.accordion-header {
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: background 0.2s;
+    user-select: none;
+}
+
+.accordion-header:hover {
+    background: rgba(88, 166, 255, 0.08);
+}
+
+.accordion-arrow {
+    font-size: 0.75rem;
+    color: var(--accent-primary);
+    flex-shrink: 0;
+    transition: transform 0.2s;
+}
+
+.accordion-body {
+    padding: 0 18px 16px;
+    border-top: 1px solid var(--glass-border);
+}
+
+/* QCM Cards */
+.qcm-card {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 16px;
+}
+
+.qcm-question {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+    font-size: 1.05rem;
+}
+
+.qcm-num {
+    color: var(--accent-primary);
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    flex-shrink: 0;
+}
+
+.qcm-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.qcm-option {
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    gap: 10px;
+}
+
+.qcm-option:hover {
+    background: rgba(88, 166, 255, 0.08);
+    border-color: rgba(88, 166, 255, 0.3);
+}
+
+.qcm-option strong {
+    color: var(--accent-primary);
+    flex-shrink: 0;
+}
+
+.qcm-explanation {
+    display: none;
+    margin-top: 12px;
+    padding: 12px 16px;
+    background: rgba(35, 209, 96, 0.1);
+    border: 1px dashed rgba(35, 209, 96, 0.4);
+    border-radius: 10px;
+    color: #23d160;
+    font-size: 0.9rem;
+}
+
 /* Utilities */
 .hidden {
     display: none !important;

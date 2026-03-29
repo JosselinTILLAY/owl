@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libcurl4-openssl-dev \
     && docker-php-ext-install pdo pdo_mysql mysqli zip gd intl xml mbstring curl
+RUN pecl install redis && docker-php-ext-enable redis
 
 # Copy Moodle from local directory
 COPY ./moodle /var/www/html
@@ -24,10 +25,14 @@ RUN chown -R www-data:www-data /var/www/html && \
     chmod -R 777 /var/www/moodledata
 
 # Enable Apache modules
-RUN a2enmod rewrite headers
+RUN a2enmod rewrite headers remoteip
 
 # Configure Apache to use the /public directory
 RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
+
+# Configure Apache for reverse proxy
+RUN echo "RemoteIPHeader X-Forwarded-For" >> /etc/apache2/sites-available/000-default.conf && \
+    echo "RemoteIPInternalProxy 172.0.0.0/8" >> /etc/apache2/sites-available/000-default.conf
 
 # Increase max_input_vars for Moodle
 RUN echo "max_input_vars = 5000" >> /usr/local/etc/php/conf.d/moodle.ini
