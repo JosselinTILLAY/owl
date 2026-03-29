@@ -11,7 +11,15 @@ class TextRequest(BaseModel):
 
 class PodcastScriptLine(BaseModel):
     speaker: str
-    content: str
+    content: str = ""
+    text: str = ""
+
+    def model_post_init(self, __context):
+        """Unifie text et content — le prompt peut renvoyer l'un ou l'autre."""
+        if self.text and not self.content:
+            self.content = self.text
+        elif self.content and not self.text:
+            self.text = self.content
 
 class PodcastScript(BaseModel):
     title: str
@@ -22,6 +30,19 @@ class PodcastResponse(BaseModel):
     audio_url: str
     script: List[PodcastScriptLine]
     duration_estimate: str
+
+class ExerciseOption(BaseModel):
+    key: str  # A, B, C, D
+    text: str
+
+class Exercise(BaseModel):
+    question: str
+    options: List[ExerciseOption]
+    answer: str  # A, B, C ou D
+    explanation: str
+
+class ExercisesResponse(BaseModel):
+    questions: List[Exercise]
 
 class JobResponse(BaseModel):
     job_id: str

@@ -431,6 +431,8 @@ audio, video {
 }
 
 .Jamie .speaker { color: var(--accent-secondary); }
+.Billie .speaker { color: var(--accent-secondary); }
+.Owl .speaker { color: var(--accent-primary); }
 
 /* Loading State */
 .spinner {

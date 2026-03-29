@@ -26,10 +26,10 @@ async def summarize_content(text: str = Form(...)):
 
 @router.post("/generate-exercises")
 async def generate_exercises_content(text: str = Form(...)):
-    """Generates interactive QCM and activities."""
+    """Génère des QCM interactifs en JSON structuré."""
     try:
         exercises = await generate_exercises(text)
-        return {"exercises": exercises}
+        return exercises
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

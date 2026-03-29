@@ -80,7 +80,7 @@ async def generate_podcast_audio(
     background_tasks: BackgroundTasks,
     text: str = Form(...), 
     mode: str = Form("duo"), 
-    provider: str = Form("openai")
+    provider: str = Form("elevenlabs")
 ):
     """Starts a background job to generate a podcast MP3 from the provided text."""
     job_id = str(uuid.uuid4())

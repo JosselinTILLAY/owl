@@ -72,7 +72,7 @@ PROMPTS = {}
 
 if os.path.exists(PROMPTS_FILE):
     try:
-        with open(PROMPTS_FILE, "r") as f:
+        with open(PROMPTS_FILE, "r", encoding="utf-8") as f:
             data = yaml.safe_load(f)
             if data:
                 PROMPTS.update(data)
