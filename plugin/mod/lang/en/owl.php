@@ -10,10 +10,11 @@ $string['owl:view']            = 'Voir une activité Owl';
 
 // Types
 $string['form_type']    = 'Type de génération';
-$string['type_podcast'] = 'Podcast';
+$string['type_podcast'] = 'Shortcast';
 $string['type_video']   = 'Vidéo';
 $string['type_qcm']     = 'QCM';
 $string['type_summary'] = 'Résumé';
+$string['type_discussion'] = 'Discussion';
 
 // Formulaire
 $string['form_section']              = 'Section du cours';
