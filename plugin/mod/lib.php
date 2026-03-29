@@ -9,9 +9,10 @@ function owl_add_instance($data, $mform = null) {
     // Nom par défaut si le prof n'a rien saisi
     if (empty(trim($data->name))) {
         $typenames = [
-            'podcast' => get_string('type_podcast', 'mod_owl'),
-            'video'   => get_string('type_video',   'mod_owl'),
-            'qcm'     => get_string('type_qcm',     'mod_owl'),
+            'podcast' => get_string('type_podcast',  'mod_owl'),
+            'video'   => get_string('type_video',    'mod_owl'),
+            'qcm'     => get_string('type_qcm',      'mod_owl'),
+            'summary' => get_string('type_summary',  'mod_owl'),
         ];
         $data->name = $typenames[$data->type] ?? ucfirst($data->type);
     }
@@ -138,8 +139,13 @@ function owl_get_coursemodule_info($cm) {
             get_string('qcm_failed', 'mod_owl'),
             'alert alert-danger'
         );
-    } elseif ($owl->status === 'qcm_ready') {
-        // QCM is ready: no inline banner, the full QCM is shown in view.php
+    } elseif ($owl->status === 'summary_failed') {
+        $info->content = html_writer::div(
+            get_string('summary_failed', 'mod_owl'),
+            'alert alert-danger'
+        );
+    } elseif ($owl->status === 'qcm_ready' || $owl->status === 'summary_ready') {
+        // Content is ready: no inline banner, the full content is shown in view.php
     } else {
         $info->content = html_writer::div(
             get_string('pending_message', 'mod_owl'),

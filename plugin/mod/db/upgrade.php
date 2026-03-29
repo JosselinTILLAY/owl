@@ -38,7 +38,7 @@ function xmldb_owl_upgrade($oldversion) {
         upgrade_mod_savepoint(true, 2024010104, 'owl');
     }
 
-    if ($oldversion < 2024010108) {
+    if ($oldversion < 2024010107) {
         $table = new xmldb_table('owl');
         $field = new xmldb_field('qcm_data', XMLDB_TYPE_TEXT, null, null, null, null, null, 'podcast_url');
 
@@ -47,6 +47,17 @@ function xmldb_owl_upgrade($oldversion) {
         }
 
         upgrade_mod_savepoint(true, 2024010107, 'owl');
+    }
+
+    if ($oldversion < 2024010108) {
+        $table = new xmldb_table('owl');
+        $field = new xmldb_field('summary_data', XMLDB_TYPE_TEXT, null, null, null, null, null, 'qcm_data');
+
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_mod_savepoint(true, 2024010108, 'owl');
     }
 
     return true;

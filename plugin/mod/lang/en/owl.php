@@ -13,6 +13,7 @@ $string['form_type']    = 'Type de génération';
 $string['type_podcast'] = 'Podcast';
 $string['type_video']   = 'Vidéo';
 $string['type_qcm']     = 'QCM';
+$string['type_summary'] = 'Résumé';
 
 // Formulaire
 $string['form_section']              = 'Section du cours';
@@ -36,6 +37,7 @@ $string['generating_message'] = 'Votre podcast est en cours de génération.';
 $string['generating_hint']    = 'Cette étape peut prendre quelques minutes. La page se rafraîchira automatiquement.';
 $string['podcast_failed']     = 'La génération du podcast a échoué. Veuillez contacter un administrateur.';
 $string['qcm_failed']         = 'La génération du QCM a échoué. Veuillez contacter un administrateur.';
+$string['summary_failed']     = 'La génération du résumé a échoué. Veuillez contacter un administrateur.';
 $string['qcm_ready_inline']   = 'Le QCM est prêt. Cliquez pour le consulter.';
 $string['qcm_check']          = 'Vérifier mes réponses';
 

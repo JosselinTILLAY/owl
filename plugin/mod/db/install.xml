@@ -15,6 +15,7 @@
         <FIELD NAME="podcast_job_id"  TYPE="char" LENGTH="36"  NOTNULL="false"/>
         <FIELD NAME="podcast_url"    TYPE="char" LENGTH="255" NOTNULL="false"/>
         <FIELD NAME="qcm_data"       TYPE="text" NOTNULL="false"/>
+        <FIELD NAME="summary_data"   TYPE="text" NOTNULL="false"/>
         <FIELD NAME="timecreated"   TYPE="int"  LENGTH="10" NOTNULL="true" DEFAULT="0"/>
         <FIELD NAME="timemodified"  TYPE="int"  LENGTH="10" NOTNULL="true" DEFAULT="0"/>
       </FIELDS>

@@ -38,6 +38,11 @@ class upload_pdfs extends \core\task\adhoc_task {
                 $task->set_custom_data(['instanceid' => $instanceid]);
                 \core\task\manager::queue_adhoc_task($task);
                 mtrace("owl upload_pdfs: tâche generate_qcm enfilée.");
+            } else if ($type === 'summary') {
+                $task = new \mod_owl\task\generate_summary();
+                $task->set_custom_data(['instanceid' => $instanceid]);
+                \core\task\manager::queue_adhoc_task($task);
+                mtrace("owl upload_pdfs: tâche generate_summary enfilée.");
             } else {
                 $task = new \mod_owl\task\generate_podcast();
                 $task->set_custom_data(['instanceid' => $instanceid]);

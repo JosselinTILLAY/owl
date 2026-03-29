@@ -11,9 +11,10 @@ class mod_owl_mod_form extends moodleform_mod {
 
         // Type de génération — placé AVANT le nom pour que le JS puisse l'écouter
         $types = [
-            'podcast' => get_string('type_podcast', 'mod_owl'),
-            'video'   => get_string('type_video',   'mod_owl'),
-            'qcm'     => get_string('type_qcm',     'mod_owl'),
+            'podcast' => get_string('type_podcast',  'mod_owl'),
+            'video'   => get_string('type_video',    'mod_owl'),
+            'qcm'     => get_string('type_qcm',      'mod_owl'),
+            'summary' => get_string('type_summary',  'mod_owl'),
         ];
         $mform->addElement('select', 'type', get_string('form_type', 'mod_owl'), $types);
         $mform->setDefault('type', 'podcast');
@@ -30,9 +31,10 @@ class mod_owl_mod_form extends moodleform_mod {
 
         // JS : auto-remplit le nom selon le type si le prof ne l'a pas saisi manuellement
         $typelabels = json_encode([
-            'podcast' => get_string('type_podcast', 'mod_owl'),
-            'video'   => get_string('type_video',   'mod_owl'),
-            'qcm'     => get_string('type_qcm',     'mod_owl'),
+            'podcast' => get_string('type_podcast',  'mod_owl'),
+            'video'   => get_string('type_video',    'mod_owl'),
+            'qcm'     => get_string('type_qcm',      'mod_owl'),
+            'summary' => get_string('type_summary',  'mod_owl'),
         ]);
         $PAGE->requires->js_amd_inline("
             require(['jquery'], function(\$) {
