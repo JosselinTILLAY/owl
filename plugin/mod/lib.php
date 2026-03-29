@@ -115,7 +115,7 @@ function owl_supports($feature) {
 function owl_get_coursemodule_info($cm) {
     global $DB;
 
-    $owl = $DB->get_record('owl', ['id' => $cm->instance], 'id, name, status, podcast_url');
+    $owl = $DB->get_record('owl', ['id' => $cm->instance], 'id, name, status, podcast_url, summary_data');
     if (!$owl) {
         return null;
     }
@@ -144,8 +144,11 @@ function owl_get_coursemodule_info($cm) {
             get_string('summary_failed', 'mod_owl'),
             'alert alert-danger'
         );
-    } elseif ($owl->status === 'qcm_ready' || $owl->status === 'summary_ready') {
-        // Content is ready: no inline banner, the full content is shown in view.php
+    } elseif ($owl->status === 'summary_ready' && !empty($owl->summary_data)) {
+        $info->content = html_writer::div($owl->summary_data, 'owl-summary card card-body mt-2');
+        $info->customdata = ['no_view_link' => true];
+    } elseif ($owl->status === 'qcm_ready') {
+        // QCM content is interactive, shown in view.php only
     } else {
         $info->content = html_writer::div(
             get_string('pending_message', 'mod_owl'),
@@ -154,4 +157,10 @@ function owl_get_coursemodule_info($cm) {
     }
 
     return $info;
+}
+
+function owl_cm_info_dynamic(cm_info $cm) {
+    if (!empty($cm->customdata['no_view_link'])) {
+        $cm->set_no_view_link();
+    }
 }
