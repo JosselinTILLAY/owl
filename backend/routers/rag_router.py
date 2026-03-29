@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, UploadFile, File, Form
 from fastapi.responses import StreamingResponse
 from services.rag_service import ingest_text, query_context, delete_context
 from services.ai_service import generate_rag_response_stream
-from utils import extract_text_from_pdf
+from utils import extract_text_any
 import os
 import uuid
 import shutil
@@ -11,18 +11,20 @@ from config import logger, STATIC_DIR
 router = APIRouter(prefix="/rag", tags=["RAG Features"])
 
 @router.post("/ingest")
-async def ingest_pdf(context_id: str = Form(...), file: UploadFile = File(...)):
-    """Uploads and ingests a PDF into a specific context."""
-    if not file.filename.endswith(".pdf"):
-        raise HTTPException(status_code=400, detail="Only PDF files are supported.")
+async def ingest_file(context_id: str = Form(...), file: UploadFile = File(...)):
+    """Uploads and ingests a document into a specific context."""
+    allowed_extensions = [".pdf", ".pptx", ".docx", ".doc", ".txt"]
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in allowed_extensions:
+        raise HTTPException(status_code=400, detail=f"Format {ext} non supporté.")
     
-    file_path = os.path.join(STATIC_DIR, f"{uuid.uuid4()}.pdf")
+    file_path = os.path.join(STATIC_DIR, f"{uuid.uuid4()}{ext}")
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
     
     try:
         # 1. Extract text
-        text = extract_text_from_pdf(file_path)
+        text = extract_text_any(file_path)
         
         # 2. Ingest into Chroma
         num_chunks = await ingest_text(text, context_id, metadata={"filename": file.filename})

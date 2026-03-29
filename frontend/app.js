@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const BACKEND_URL = 'http://localhost:8001';
 
-    let selectedFile = null;
+    let selectedFiles = [];
     let currentFeature = 'podcast';
     let contextId = null;
 
@@ -54,16 +54,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // File Handling
     dropZone.addEventListener('click', () => pdfInput.click());
-    pdfInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+    pdfInput.addEventListener('change', (e) => handleFiles(e.target.files));
     dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.borderColor = 'var(--accent-primary)'; });
     dropZone.addEventListener('dragleave', () => dropZone.style.borderColor = 'var(--glass-border)');
-    dropZone.addEventListener('drop', (e) => { e.preventDefault(); handleFile(e.dataTransfer.files[0]); });
+    dropZone.addEventListener('drop', (e) => { e.preventDefault(); handleFiles(e.dataTransfer.files); });
 
-    function handleFile(file) {
-        if (!file || !file.name.endsWith('.pdf')) return alert('Un fichier PDF est requis.');
-        selectedFile = file;
-        fileNameDisplay.textContent = file.name;
-        fileStatusHeader.textContent = `Source : ${file.name}`;
+    function handleFiles(files) {
+        if (!files || files.length === 0) return;
+
+        const allowedExtensions = ['.pdf', '.pptx', '.docx', '.doc', '.txt'];
+        const newFiles = Array.from(files).filter(f => {
+            const ext = f.name.substring(f.name.lastIndexOf('.')).toLowerCase();
+            return allowedExtensions.includes(ext);
+        });
+
+        if (newFiles.length === 0) return alert('Formats supportés : PDF, PPTX, DOCX, TXT');
+
+        selectedFiles = newFiles;
+        const count = selectedFiles.length;
+        const label = count > 1 ? `${count} fichiers sélectionnés` : selectedFiles[0].name;
+
+        fileNameDisplay.textContent = label;
+        fileStatusHeader.textContent = `Source : ${label}`;
         fileInfo.classList.remove('hidden');
         dropZone.classList.add('hidden');
         generateBtn.disabled = false;
@@ -71,13 +83,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     removeFileBtn.addEventListener('click', () => {
-        selectedFile = null; fileInfo.classList.add('hidden'); dropZone.classList.remove('hidden');
-        generateBtn.disabled = true; pdfInput.value = ''; fileStatusHeader.textContent = "Aucun PDF sélectionné";
+        selectedFiles = []; fileInfo.classList.add('hidden'); dropZone.classList.remove('hidden');
+        generateBtn.disabled = true; pdfInput.value = ''; fileStatusHeader.textContent = "Aucun fichier sélectionné";
     });
 
     // Generation Core
     generateBtn.addEventListener('click', async () => {
-        if (!selectedFile) return;
+        if (selectedFiles.length === 0) return;
 
         resetResultView();
         generateBtn.disabled = true;
@@ -86,13 +98,18 @@ document.addEventListener('DOMContentLoaded', () => {
         loadingText.textContent = "Ingestion du PDF...";
 
         try {
-            // 1. Ingest PDF (RAG)
-            const formData = new FormData();
-            formData.append('file', selectedFile);
-            formData.append('context_id', contextId);
+            // 1. Ingest all files (RAG)
+            for (let i = 0; i < selectedFiles.length; i++) {
+                const file = selectedFiles[i];
+                loadingText.textContent = `Analyse du fichier ${i + 1}/${selectedFiles.length}...`;
+                
+                const formData = new FormData();
+                formData.append('file', file);
+                formData.append('context_id', contextId);
 
-            const ingestRes = await fetch(`${BACKEND_URL}/rag/ingest`, { method: 'POST', body: formData });
-            if (!ingestRes.ok) throw new Error("Échec de l'ingestion du PDF");
+                const ingestRes = await fetch(`${BACKEND_URL}/rag/ingest`, { method: 'POST', body: formData });
+                if (!ingestRes.ok) throw new Error(`Échec de l'ingestion de ${file.name}`);
+            }
 
             // 2. Feature specific
             loadingText.textContent = loadingMessages[currentFeature] || "Génération en cours...";
@@ -111,162 +128,168 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    async function handlePodcastGeneration() {
-        loadingText.textContent = "Génération du podcast Owl & Billie...";
+async function handlePodcastGeneration() {
+    loadingText.textContent = "Extraction du contenu...";
+    let fullText = "";
 
-        const res = await fetch(`${BACKEND_URL}/upload-pdf`, {
-            method: 'POST',
-            body: (() => { const fd = new FormData(); fd.append('file', selectedFile); return fd; })()
-        });
+    for (const file of selectedFiles) {
+        const fd = new FormData();
+        fd.append('file', file);
+        const res = await fetch(`${BACKEND_URL}/upload-pdf`, { method: 'POST', body: fd });
+        if (!res.ok) continue;
         const { text } = await res.json();
-
-        const genBody = new FormData();
-        genBody.append('text', text);
-        genBody.append('mode', 'duo');
-        genBody.append('provider', 'elevenlabs');
-
-        const podRes = await fetch(`${BACKEND_URL}/generate-podcast`, { method: 'POST', body: genBody });
-        const podData = await podRes.json();
-        const finalData = await pollJobStatus(podData.job_id);
-        renderOutput('podcast', finalData);
+        fullText += text + "\n\n";
     }
 
-    async function handleRAGStreaming(featureId) {
-        const outlet = document.getElementById(`result-${featureId}`);
-        const contentArea = featureId === 'chat' ? null : document.getElementById(`${featureId}-content`);
+    if (!fullText.trim()) throw new Error("Aucun texte n'a pu être extrait des fichiers.");
 
-        outlet.classList.remove('hidden');
-        if (contentArea) contentArea.innerHTML = '<div class="streaming-cursor"></div>';
+    const genBody = new FormData();
+    genBody.append('text', fullText);
+    genBody.append('mode', 'duo');
+    genBody.append('provider', 'elevenlabs');
 
-        const body = new FormData();
-        body.append('context_id', contextId);
-        body.append('mode', features[featureId].mode);
+    const podRes = await fetch(`${BACKEND_URL}/generate-podcast`, { method: 'POST', body: genBody });
+    const podData = await podRes.json();
+    const finalData = await pollJobStatus(podData.job_id);
+    renderOutput('podcast', finalData);
+}
 
-        let query = "Résume le contenu du cours.";
-        if (featureId === 'exercises') query = "Génère 5 QCM.";
-        if (featureId === 'chat') query = chatInput.value || "Parle-moi de ce cours.";
-        body.append('query', query);
+async function handleRAGStreaming(featureId) {
+    const outlet = document.getElementById(`result-${featureId}`);
+    const contentArea = featureId === 'chat' ? null : document.getElementById(`${featureId}-content`);
 
-        const response = await fetch(`${BACKEND_URL}/rag/query`, { method: 'POST', body: body });
-        if (!response.ok) throw new Error('Échec du streaming');
+    outlet.classList.remove('hidden');
+    if (contentArea) contentArea.innerHTML = '<div class="streaming-cursor"></div>';
 
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let fullText = '';
+    const body = new FormData();
+    body.append('context_id', contextId);
+    body.append('mode', features[featureId].mode);
 
-        if (featureId === 'chat') appendChatBubble('ai', '');
+    let query = "Résume le contenu du cours.";
+    if (featureId === 'exercises') query = "Génère 5 QCM.";
+    if (featureId === 'chat') query = chatInput.value || "Parle-moi de ce cours.";
+    body.append('query', query);
 
-        while (true) {
-            const { value, done } = await reader.read();
-            if (done) break;
-            const chunk = decoder.decode(value, { stream: true });
-            fullText += chunk;
+    const response = await fetch(`${BACKEND_URL}/rag/query`, { method: 'POST', body: body });
+    if (!response.ok) throw new Error('Échec du streaming');
 
-            if (featureId === 'chat') {
-                updateLastChatBubble(fullText);
-            } else {
-                contentArea.innerHTML = formatMarkdown(fullText) + '<div class="streaming-cursor"></div>';
-            }
-        }
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let fullText = '';
 
-        if (contentArea) {
-            contentArea.innerHTML = formatMarkdown(fullText);
-            triggerMathRendering(`${featureId}-content`);
-        } else if (featureId === 'chat') {
-            updateLastChatBubble(fullText, false);
-            triggerMathRendering('chat-history');
+    if (featureId === 'chat') appendChatBubble('ai', '');
+
+    while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        fullText += chunk;
+
+        if (featureId === 'chat') {
+            updateLastChatBubble(fullText);
+        } else {
+            contentArea.innerHTML = formatMarkdown(fullText) + '<div class="streaming-cursor"></div>';
         }
     }
 
-    // Chat
-    sendChatBtn.addEventListener('click', async () => {
-        const query = chatInput.value.trim();
-        if (!query || !contextId) return;
-        appendChatBubble('user', query);
-        chatInput.value = '';
-        await handleRAGStreaming('chat');
-    });
-
-    chatInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') sendChatBtn.click();
-    });
-
-    function appendChatBubble(role, text) {
-        const bubble = document.createElement('div');
-        bubble.className = `chat-bubble ${role} ${role === 'ai' ? 'streaming-cursor' : ''}`;
-        bubble.innerHTML = role === 'user' ? text : formatMarkdown(text);
-        chatHistory.appendChild(bubble);
-        chatHistory.scrollTop = chatHistory.scrollHeight;
+    if (contentArea) {
+        contentArea.innerHTML = formatMarkdown(fullText);
+        triggerMathRendering(`${featureId}-content`);
+    } else if (featureId === 'chat') {
+        updateLastChatBubble(fullText, false);
+        triggerMathRendering('chat-history');
     }
+}
 
-    function updateLastChatBubble(text, isStreaming = true) {
-        const bubbles = chatHistory.querySelectorAll('.chat-bubble.ai');
-        const lastBubble = bubbles[bubbles.length - 1];
-        if (lastBubble) {
-            lastBubble.innerHTML = formatMarkdown(text);
-            lastBubble.classList.toggle('streaming-cursor', isStreaming);
-        }
-        chatHistory.scrollTop = chatHistory.scrollHeight;
+// Chat
+sendChatBtn.addEventListener('click', async () => {
+    const query = chatInput.value.trim();
+    if (!query || !contextId) return;
+    appendChatBubble('user', query);
+    chatInput.value = '';
+    await handleRAGStreaming('chat');
+});
+
+chatInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendChatBtn.click();
+});
+
+function appendChatBubble(role, text) {
+    const bubble = document.createElement('div');
+    bubble.className = `chat-bubble ${role} ${role === 'ai' ? 'streaming-cursor' : ''}`;
+    bubble.innerHTML = role === 'user' ? text : formatMarkdown(text);
+    chatHistory.appendChild(bubble);
+    chatHistory.scrollTop = chatHistory.scrollHeight;
+}
+
+function updateLastChatBubble(text, isStreaming = true) {
+    const bubbles = chatHistory.querySelectorAll('.chat-bubble.ai');
+    const lastBubble = bubbles[bubbles.length - 1];
+    if (lastBubble) {
+        lastBubble.innerHTML = formatMarkdown(text);
+        lastBubble.classList.toggle('streaming-cursor', isStreaming);
     }
+    chatHistory.scrollTop = chatHistory.scrollHeight;
+}
 
-    async function pollJobStatus(jobId) {
-        while (true) {
-            const res = await fetch(`${BACKEND_URL}/podcast/job/${jobId}`);
-            const job = await res.json();
-            if (job.status === 'completed') return job.result;
-            if (job.status === 'failed') throw new Error(job.error || 'Échec de la génération');
-            const labels = { pending: 'En attente...', processing: 'Génération en cours...' };
-            loadingText.textContent = labels[job.status] || `Statut : ${job.status}...`;
-            await new Promise(r => setTimeout(r, 2000));
-        }
+async function pollJobStatus(jobId) {
+    while (true) {
+        const res = await fetch(`${BACKEND_URL}/podcast/job/${jobId}`);
+        const job = await res.json();
+        if (job.status === 'completed') return job.result;
+        if (job.status === 'failed') throw new Error(job.error || 'Échec de la génération');
+        const labels = { pending: 'En attente...', processing: 'Génération en cours...' };
+        loadingText.textContent = labels[job.status] || `Statut : ${job.status}...`;
+        await new Promise(r => setTimeout(r, 2000));
     }
+}
 
-    function renderOutput(feature, data) {
-        document.querySelectorAll('.result-outlet').forEach(o => o.classList.add('hidden'));
-        const outlet = document.getElementById(`result-${feature}`);
-        outlet.classList.remove('hidden');
+function renderOutput(feature, data) {
+    document.querySelectorAll('.result-outlet').forEach(o => o.classList.add('hidden'));
+    const outlet = document.getElementById(`result-${feature}`);
+    outlet.classList.remove('hidden');
 
-        if (feature === 'podcast') {
-            const player = document.getElementById('audio-player');
-            player.src = `${BACKEND_URL}${data.audio_url}`;
-            document.getElementById('download-link').href = player.src;
-            document.getElementById('script-content').innerHTML = data.script.map(line => `
+    if (feature === 'podcast') {
+        const player = document.getElementById('audio-player');
+        player.src = `${BACKEND_URL}${data.audio_url}`;
+        document.getElementById('download-link').href = player.src;
+        document.getElementById('script-content').innerHTML = data.script.map(line => `
                 <div class="script-line ${line.speaker}">
                     <span class="speaker">${line.speaker}</span>
                     <p>${line.content}</p>
                 </div>
             `).join('');
-            player.play();
-        }
+        player.play();
     }
+}
 
-    function resetResultView() {
-        document.querySelectorAll('.result-outlet').forEach(o => o.classList.add('hidden'));
-        emptyState.classList.remove('hidden');
-        loadingState.classList.add('hidden');
-        if (currentFeature === 'chat') {
-            document.getElementById('result-chat').classList.remove('hidden');
-            emptyState.classList.add('hidden');
-        }
+function resetResultView() {
+    document.querySelectorAll('.result-outlet').forEach(o => o.classList.add('hidden'));
+    emptyState.classList.remove('hidden');
+    loadingState.classList.add('hidden');
+    if (currentFeature === 'chat') {
+        document.getElementById('result-chat').classList.remove('hidden');
+        emptyState.classList.add('hidden');
     }
+}
 
-    function formatMarkdown(text) {
-        if (typeof text !== 'string') return JSON.stringify(text);
-        return marked.parse(text);
-    }
+function formatMarkdown(text) {
+    if (typeof text !== 'string') return JSON.stringify(text);
+    return marked.parse(text);
+}
 
-    function triggerMathRendering(elementId) {
-        const el = typeof elementId === 'string' ? document.getElementById(elementId) : elementId;
-        if (typeof renderMathInElement === 'function' && el) {
-            renderMathInElement(el, {
-                delimiters: [
-                    {left: '$$', right: '$$', display: true},
-                    {left: '$', right: '$', display: false},
-                    {left: '\\(', right: '\\)', display: false},
-                    {left: '\\[', right: '\\]', display: true}
-                ],
-                throwOnError: false
-            });
-        }
+function triggerMathRendering(elementId) {
+    const el = typeof elementId === 'string' ? document.getElementById(elementId) : elementId;
+    if (typeof renderMathInElement === 'function' && el) {
+        renderMathInElement(el, {
+            delimiters: [
+                { left: '$$', right: '$$', display: true },
+                { left: '$', right: '$', display: false },
+                { left: '\\(', right: '\\)', display: false },
+                { left: '\\[', right: '\\]', display: true }
+            ],
+            throwOnError: false
+        });
     }
+}
 });

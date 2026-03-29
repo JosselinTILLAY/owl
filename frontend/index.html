@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -7,11 +8,13 @@
     <link rel="stylesheet" href="style.css" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=JetBrains+Mono&display=swap"
+        rel="stylesheet" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" />
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
 </head>
+
 <body class="studio-layout">
     <div class="overlay"></div>
 
@@ -61,8 +64,8 @@
                     <label>Fichier PDF source</label>
                     <div id="drop-zone" class="drop-zone">
                         <span class="icon">📄</span>
-                        <p>Dépose ton PDF ici</p>
-                        <input type="file" id="pdf-input" accept=".pdf" hidden />
+                        <p>Dépose tes fichiers ici (PDF, PPTX, DOCX, TXT)</p>
+                        <input type="file" id="pdf-input" accept=".pdf,.pptx,.docx,.doc,.txt" multiple hidden />
                     </div>
                     <div id="file-info" class="file-info hidden">
                         <span class="file-name"></span>
@@ -119,4 +122,5 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="app.js"></script>
 </body>
+
 </html>

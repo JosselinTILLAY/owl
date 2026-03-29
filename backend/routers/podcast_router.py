@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Background
 from fastapi.responses import FileResponse
 from models import PodcastResponse, JobResponse, JobStatusResponse
 from config import logger, PODCASTS_DIR, STATIC_DIR
-from utils import extract_text_from_pdf
+from utils import extract_text_any
 from services.podcast_service import (
     generate_podcast_script_content, 
     synthesize_audio_openai, 
@@ -59,21 +59,23 @@ async def background_generate_podcast(
         jobs[job_id].error = str(e)
 
 @router.post("/upload-pdf")
-async def upload_pdf_file(file: UploadFile = File(...)):
-    """Uploads a PDF and extracts its text for processing."""
-    if not file.filename.endswith(".pdf"):
-        raise HTTPException(status_code=400, detail="Only PDF files are supported.")
+async def upload_file_and_extract_text(file: UploadFile = File(...)):
+    """Uploads a document and extracts its text for processing."""
+    allowed_extensions = [".pdf", ".pptx", ".docx", ".doc", ".txt"]
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext not in allowed_extensions:
+        raise HTTPException(status_code=400, detail=f"Format {ext} non supporté.")
     
-    file_path = os.path.join(STATIC_DIR, f"{uuid.uuid4()}.pdf")
+    file_path = os.path.join(STATIC_DIR, f"{uuid.uuid4()}{ext}")
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
     
     try:
-        text = extract_text_from_pdf(file_path)
+        text = extract_text_any(file_path)
         return {"text": text, "filename": file.filename}
     except Exception as e:
-        logger.error(f"PDF extraction failed: {str(e)}")
-        raise HTTPException(status_code=500, detail="Failed to extract text from PDF.")
+        logger.error(f"Extraction failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Échec de l'extraction: {str(e)}")
 
 @router.post("/generate-podcast", response_model=JobResponse)
 async def generate_podcast_audio(
