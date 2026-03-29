@@ -133,16 +133,13 @@ function owl_get_coursemodule_info($cm) {
             get_string('podcast_failed', 'mod_owl'),
             'alert alert-danger'
         );
-    } elseif ($owl->status === 'qcm_ready') {
-        $info->content = html_writer::div(
-            get_string('qcm_ready_inline', 'mod_owl'),
-            'alert alert-success'
-        );
     } elseif ($owl->status === 'qcm_failed') {
         $info->content = html_writer::div(
             get_string('qcm_failed', 'mod_owl'),
             'alert alert-danger'
         );
+    } elseif ($owl->status === 'qcm_ready') {
+        // QCM is ready: no inline banner, the full QCM is shown in view.php
     } else {
         $info->content = html_writer::div(
             get_string('pending_message', 'mod_owl'),
