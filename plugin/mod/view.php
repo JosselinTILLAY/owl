@@ -81,7 +81,7 @@ if ($owl->status === 'podcast_ready' && !empty($owl->podcast_url)) {
         ");
     }
 } else if ($owl->status === 'summary_ready' && !empty($owl->summary_data)) {
-    echo html_writer::div($owl->summary_data, 'owl-summary card card-body');
+    echo html_writer::div(format_text($owl->summary_data, FORMAT_MARKDOWN), 'owl-summary card card-body');
 } else if ($owl->status === 'summary_failed') {
     echo html_writer::div(
         html_writer::tag('p', get_string('summary_failed', 'mod_owl')),

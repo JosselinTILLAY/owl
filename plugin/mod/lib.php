@@ -145,7 +145,7 @@ function owl_get_coursemodule_info($cm) {
             'alert alert-danger'
         );
     } elseif ($owl->status === 'summary_ready' && !empty($owl->summary_data)) {
-        $info->content = html_writer::div($owl->summary_data, 'owl-summary card card-body mt-2');
+        $info->content = html_writer::div(format_text($owl->summary_data, FORMAT_MARKDOWN), 'owl-summary card card-body mt-2');
         $info->customdata = ['no_view_link' => true];
     } elseif ($owl->status === 'qcm_ready') {
         // QCM content is interactive, shown in view.php only
