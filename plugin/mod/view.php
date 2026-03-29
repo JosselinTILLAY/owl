@@ -29,6 +29,16 @@ if ($owl->status === 'podcast_ready' && !empty($owl->podcast_url)) {
         html_writer::tag('p', get_string('podcast_failed', 'mod_owl')),
         'alert alert-danger'
     );
+} else if ($owl->status === 'qcm_ready' && !empty($owl->qcm_data)) {
+    echo html_writer::div(
+        html_writer::tag('div', format_text($owl->qcm_data, FORMAT_MARKDOWN)),
+        'owl-qcm'
+    );
+} else if ($owl->status === 'qcm_failed') {
+    echo html_writer::div(
+        html_writer::tag('p', get_string('qcm_failed', 'mod_owl')),
+        'alert alert-danger'
+    );
 } else {
     // pending / ready / generating : afficher le message d'attente et rafraîchir
     $message = in_array($owl->status, ['ready', 'generating'])

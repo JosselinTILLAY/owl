@@ -35,6 +35,8 @@ $string['pending_hint']       = 'Le contenu sera automatiquement ajouté à votr
 $string['generating_message'] = 'Votre podcast est en cours de génération.';
 $string['generating_hint']    = 'Cette étape peut prendre quelques minutes. La page se rafraîchira automatiquement.';
 $string['podcast_failed']     = 'La génération du podcast a échoué. Veuillez contacter un administrateur.';
+$string['qcm_failed']         = 'La génération du QCM a échoué. Veuillez contacter un administrateur.';
+$string['qcm_ready_inline']   = 'Le QCM est prêt. Cliquez pour le consulter.';
 
 // index.php
 $string['no_instances'] = 'Aucune génération Owl dans ce cours.';

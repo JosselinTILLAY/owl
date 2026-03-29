@@ -31,10 +31,19 @@ class upload_pdfs extends \core\task\adhoc_task {
             $DB->set_field('owl', 'status', 'ready', ['id' => $instanceid]);
             mtrace("owl upload_pdfs: BDD mise à jour, status=ready");
 
-            $task = new \mod_owl\task\generate_podcast();
-            $task->set_custom_data(['instanceid' => $instanceid]);
-            \core\task\manager::queue_adhoc_task($task);
-            mtrace("owl upload_pdfs: tâche generate_podcast enfilée.");
+            $type = $DB->get_field('owl', 'type', ['id' => $instanceid]);
+
+            if ($type === 'qcm') {
+                $task = new \mod_owl\task\generate_qcm();
+                $task->set_custom_data(['instanceid' => $instanceid]);
+                \core\task\manager::queue_adhoc_task($task);
+                mtrace("owl upload_pdfs: tâche generate_qcm enfilée.");
+            } else {
+                $task = new \mod_owl\task\generate_podcast();
+                $task->set_custom_data(['instanceid' => $instanceid]);
+                \core\task\manager::queue_adhoc_task($task);
+                mtrace("owl upload_pdfs: tâche generate_podcast enfilée.");
+            }
         } else {
             mtrace("owl upload_pdfs: aucun texte extrait, BDD inchangée");
         }
