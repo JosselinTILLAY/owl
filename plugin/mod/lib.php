@@ -110,3 +110,35 @@ function owl_supports($feature) {
             return null;
     }
 }
+
+function owl_get_coursemodule_info($cm) {
+    global $DB;
+
+    $owl = $DB->get_record('owl', ['id' => $cm->instance], 'id, name, status, podcast_url');
+    if (!$owl) {
+        return null;
+    }
+
+    $info = new cached_cm_info();
+    $info->name = $owl->name;
+
+    if ($owl->status === 'podcast_ready' && !empty($owl->podcast_url)) {
+        $info->content = html_writer::tag('audio', '', [
+            'controls' => 'controls',
+            'src'      => $owl->podcast_url,
+            'style'    => 'width:100%;margin-top:0.5em;',
+        ]);
+    } elseif ($owl->status === 'podcast_failed') {
+        $info->content = html_writer::div(
+            get_string('podcast_failed', 'mod_owl'),
+            'alert alert-danger'
+        );
+    } else {
+        $info->content = html_writer::div(
+            get_string('pending_message', 'mod_owl'),
+            'alert alert-info'
+        );
+    }
+
+    return $info;
+}

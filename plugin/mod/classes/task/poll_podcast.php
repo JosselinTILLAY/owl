@@ -117,6 +117,7 @@ class poll_podcast extends \core\task\adhoc_task {
 
                 $DB->set_field('owl', 'podcast_url', $podcasturl, ['id' => $instanceid]);
                 $DB->set_field('owl', 'status', 'podcast_ready', ['id' => $instanceid]);
+                rebuild_course_cache($cm->course, true);
                 mtrace("owl poll_podcast: podcast stocké dans Moodle, url={$podcasturl}");
                 break;
 
