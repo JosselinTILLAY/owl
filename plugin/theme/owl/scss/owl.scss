@@ -1,0 +1,545 @@
+// ============================================================
+// OWL Theme — Surcouche Boost avec charte OWL
+// Orange #F07E16 + Vert #1B3D2F, fond blanc cassé, moderne
+// ============================================================
+
+// Import de la charte graphique (variables, mixins, utilitaires)
+@import 'owl_new';
+
+// Raccourcis depuis la charte
+$owl-primary: $owl-orange;
+$owl-primary-light: rgba($owl-orange, 0.08);
+$owl-primary-hover: $owl-orange-dark;
+$owl-bg: $owl-white;
+$owl-surface: $owl-white-pure;
+$owl-border: #e5e7eb;
+$owl-border-light: $owl-gray-light;
+$owl-text: $owl-gray-dark;
+$owl-text-secondary: $owl-gray;
+$owl-radius: 16px;
+$owl-radius-sm: 8px;
+
+// ── Body ───────────────────────────────────────────────────
+
+body {
+    background: $owl-bg;
+    font-family: var(--owl-font-body);
+    color: $owl-text;
+    -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--owl-font-display);
+    color: $owl-green;
+    letter-spacing: 0.02em;
+}
+
+// ── Navbar ─────────────────────────────────────────────────
+
+.navbar {
+    background: $owl-surface !important;
+    border-bottom: 1px solid $owl-border;
+    box-shadow: var(--owl-shadow-sm);
+    padding: 8px 16px;
+
+    .navbar-brand {
+        font-family: var(--owl-font-display);
+        font-weight: 700;
+        color: $owl-green !important;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        &::before {
+            content: "";
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            background: url([[pix:theme_owl|logo]]) no-repeat center center;
+            background-size: contain;
+        }
+    }
+
+    .nav-link {
+        color: $owl-text-secondary !important;
+        font-family: var(--owl-font-body);
+        font-weight: 500;
+        border-radius: $owl-radius-sm;
+        padding: 8px 14px !important;
+        transition: var(--owl-transition-fast);
+
+        &:hover {
+            color: $owl-orange !important;
+            background: $owl-primary-light;
+        }
+
+        &.active {
+            color: $owl-orange !important;
+            font-weight: 600;
+        }
+    }
+}
+
+// ── Drawer / Sidebar ───────────────────────────────────────
+
+[data-region="drawer"] {
+    background: $owl-surface !important;
+    border-right: 1px solid $owl-border;
+}
+
+.drawercontent {
+    background: $owl-surface;
+}
+
+.list-group-item {
+    border-color: $owl-border-light;
+    border-radius: $owl-radius-sm !important;
+    margin: 2px 8px;
+    transition: var(--owl-transition-fast);
+
+    &:hover {
+        background: $owl-primary-light;
+        color: $owl-orange;
+    }
+
+    &.active {
+        background: $owl-primary-light;
+        color: $owl-orange;
+        border-left: 3px solid $owl-orange;
+        font-weight: 600;
+    }
+}
+
+// ── Cards ──────────────────────────────────────────────────
+
+.card {
+    @include owl-card;
+    border: 1px solid $owl-border;
+
+    .card-header {
+        background: $owl-gray-light;
+        border-bottom: 1px solid $owl-border;
+        font-family: var(--owl-font-display);
+        font-weight: 600;
+        letter-spacing: 0.03em;
+        border-radius: var(--owl-radius-lg) var(--owl-radius-lg) 0 0;
+    }
+
+    .card-title {
+        color: $owl-green;
+        font-family: var(--owl-font-display);
+    }
+}
+
+// ── Boutons ────────────────────────────────────────────────
+
+.btn-primary {
+    @include owl-btn-primary;
+}
+
+.btn-secondary {
+    background: $owl-surface;
+    border: 1px solid $owl-border;
+    color: $owl-text;
+    border-radius: var(--owl-radius-pill);
+    font-weight: 500;
+    transition: var(--owl-transition-fast);
+
+    &:hover {
+        background: $owl-gray-light;
+        border-color: darken($owl-border, 8%);
+    }
+}
+
+.btn-outline-secondary {
+    @include owl-btn-outline;
+}
+
+// ── Liens ──────────────────────────────────────────────────
+
+a {
+    color: $owl-orange;
+    transition: color var(--owl-transition-fast);
+
+    &:hover {
+        color: $owl-orange-dark;
+    }
+}
+
+// ── Navigation secondaire (onglets cours) ──────────────────
+
+.secondary-navigation {
+    background: $owl-surface !important;
+    border-bottom: 1px solid $owl-border;
+    margin-bottom: 24px;
+
+    .moremenu .nav-tabs {
+        border: none;
+
+        .nav-item .nav-link {
+            color: $owl-text-secondary;
+            border: none;
+            padding: 12px 20px;
+            font-family: var(--owl-font-display);
+            font-weight: 500;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            font-size: 0.82rem;
+            border-radius: $owl-radius-sm $owl-radius-sm 0 0;
+            transition: var(--owl-transition-fast);
+            position: relative;
+
+            &:hover {
+                color: $owl-orange;
+                background: $owl-primary-light;
+            }
+
+            &.active {
+                color: $owl-orange;
+                font-weight: 600;
+                background: transparent;
+
+                &::after {
+                    content: "";
+                    position: absolute;
+                    bottom: 0;
+                    left: 16px;
+                    right: 16px;
+                    height: 3px;
+                    background: $owl-orange;
+                    border-radius: 3px 3px 0 0;
+                }
+            }
+        }
+    }
+}
+
+// ── Page de cours — Sections ───────────────────────────────
+
+.page-header-headings h1 {
+    @include owl-display-lg;
+    color: $owl-green;
+}
+
+.course-content {
+    .section {
+        background: $owl-surface !important;
+        border: 1px solid $owl-border !important;
+        border-radius: $owl-radius !important;
+        margin-bottom: 16px !important;
+        padding: 20px 24px !important;
+        box-shadow: var(--owl-shadow-sm);
+        transition: transform var(--owl-transition-normal),
+                    box-shadow var(--owl-transition-normal);
+
+        &:hover {
+            box-shadow: var(--owl-shadow-md);
+            transform: translateY(-2px);
+        }
+    }
+
+    .sectionname,
+    .section-title,
+    h3.sectionname {
+        @include owl-heading;
+        color: $owl-green !important;
+        margin-bottom: 12px;
+
+        a {
+            color: $owl-green !important;
+            &:hover { color: $owl-orange !important; }
+        }
+    }
+}
+
+// ── Activités ──────────────────────────────────────────────
+
+.activity-item,
+.section .activity {
+    background: $owl-surface;
+    border: 1px solid $owl-border-light;
+    border-radius: $owl-radius-sm;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+    transition: var(--owl-transition-fast);
+
+    &:hover {
+        background: $owl-primary-light;
+        border-color: rgba($owl-orange, 0.25);
+        transform: translateX(3px);
+    }
+
+    .activityname,
+    .activity-name-area {
+        a {
+            color: $owl-text !important;
+            font-weight: 500;
+            &:hover { color: $owl-orange !important; }
+        }
+    }
+
+    .activityiconcontainer,
+    .activity-icon {
+        background: $owl-primary-light;
+        border-radius: $owl-radius-sm;
+        padding: 6px;
+    }
+
+    .activity-actions .dropdown-toggle {
+        color: $owl-text-secondary;
+        &:hover { color: $owl-orange; }
+    }
+}
+
+// ── Course index sidebar ───────────────────────────────────
+
+.courseindex {
+    .courseindex-item {
+        color: $owl-text-secondary;
+        padding: 8px 12px;
+        border-radius: $owl-radius-sm;
+        margin: 2px 4px;
+        transition: var(--owl-transition-fast);
+
+        &:hover {
+            background: $owl-primary-light;
+            color: $owl-orange;
+        }
+
+        &.active, &.current {
+            background: $owl-primary-light;
+            color: $owl-orange;
+            border-left: 3px solid $owl-orange;
+            font-weight: 600;
+        }
+    }
+
+    .courseindex-section-title {
+        @include owl-label;
+        color: $owl-green;
+    }
+
+    .courseindex-section {
+        border-bottom: 1px solid $owl-border-light;
+        padding-bottom: 8px;
+        margin-bottom: 4px;
+    }
+}
+
+// ── Add section button ─────────────────────────────────────
+
+.changenumsections {
+    .btn, a.btn {
+        background: $owl-primary-light;
+        border: 2px dashed rgba($owl-orange, 0.3);
+        color: $owl-orange;
+        border-radius: var(--owl-radius-md);
+        padding: 12px 24px;
+        font-family: var(--owl-font-display);
+        font-weight: 500;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        transition: var(--owl-transition-fast);
+
+        &:hover {
+            background: rgba($owl-orange, 0.12);
+            border-color: $owl-orange;
+        }
+    }
+}
+
+// ── Forms ──────────────────────────────────────────────────
+
+.form-control {
+    border: 1px solid $owl-border;
+    border-radius: $owl-radius-sm;
+    padding: 10px 14px;
+    transition: var(--owl-transition-fast);
+
+    &:focus {
+        border-color: $owl-orange;
+        box-shadow: 0 0 0 3px rgba($owl-orange, 0.12);
+    }
+}
+
+// ── Tables ─────────────────────────────────────────────────
+
+.table {
+    th {
+        background: $owl-gray-light;
+        font-family: var(--owl-font-display);
+        @include owl-label;
+        color: $owl-green;
+        border-color: $owl-border;
+    }
+
+    td {
+        border-color: $owl-border-light;
+    }
+
+    tbody tr {
+        transition: background var(--owl-transition-fast);
+        &:hover { background: $owl-primary-light; }
+    }
+}
+
+// ── Breadcrumb ─────────────────────────────────────────────
+
+.breadcrumb {
+    background: transparent;
+    font-size: 0.85rem;
+
+    .breadcrumb-item {
+        color: $owl-text-secondary;
+        a { color: $owl-orange; }
+        &.active { color: $owl-text; font-weight: 500; }
+    }
+}
+
+// ── Alerts ─────────────────────────────────────────────────
+
+.alert {
+    border-radius: $owl-radius-sm;
+}
+
+.alert-info {
+    background: $owl-primary-light;
+    border: 1px solid rgba($owl-orange, 0.2);
+    color: $owl-orange-dark;
+}
+
+.alert-success {
+    background: rgba($owl-green, 0.08);
+    border-color: rgba($owl-green, 0.2);
+    color: $owl-green;
+}
+
+// ── Dropdowns ──────────────────────────────────────────────
+
+.dropdown-menu {
+    border: 1px solid $owl-border;
+    border-radius: var(--owl-radius-md);
+    box-shadow: var(--owl-shadow-lg);
+    padding: 6px;
+
+    .dropdown-item {
+        border-radius: $owl-radius-sm;
+        padding: 8px 12px;
+        transition: var(--owl-transition-fast);
+
+        &:hover {
+            background: $owl-primary-light;
+            color: $owl-orange;
+        }
+    }
+}
+
+// ── Modals ─────────────────────────────────────────────────
+
+.modal-content {
+    border: 1px solid $owl-border;
+    border-radius: var(--owl-radius-md);
+    box-shadow: var(--owl-shadow-lg);
+}
+
+// ── Progress bars ──────────────────────────────────────────
+
+.progress {
+    border-radius: var(--owl-radius-pill);
+    height: 8px;
+    background: $owl-gray-light;
+
+    .progress-bar {
+        border-radius: var(--owl-radius-pill);
+        background: var(--owl-gradient-orange);
+    }
+}
+
+// ── Completion ─────────────────────────────────────────────
+
+.completion-complete .icon,
+.completion_complete .icon {
+    color: $owl-green !important;
+}
+
+// ── Badges ─────────────────────────────────────────────────
+
+.badge {
+    border-radius: var(--owl-radius-pill);
+    font-family: var(--owl-font-display);
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    padding: 4px 12px;
+}
+
+// ── Footer ─────────────────────────────────────────────────
+
+#page-footer {
+    background: $owl-surface !important;
+    border-top: 1px solid $owl-border;
+    color: $owl-text-secondary;
+}
+
+// ── Login ──────────────────────────────────────────────────
+
+#page-login-index {
+    background: linear-gradient(135deg, $owl-white 0%, $owl-gray-light 100%);
+
+    .login-container .card {
+        box-shadow: var(--owl-shadow-lg);
+        border: 1px solid $owl-border;
+    }
+
+    .login-heading {
+        color: $owl-green;
+        font-family: var(--owl-font-display);
+    }
+}
+
+// ── Dashboard ──────────────────────────────────────────────
+
+#page-my-index #region-main {
+    max-width: 100%;
+}
+
+// ── Calendrier ─────────────────────────────────────────────
+
+.calendartable {
+    border-collapse: separate;
+    border-spacing: 3px;
+
+    th {
+        background: $owl-primary-light !important;
+        color: $owl-orange !important;
+        @include owl-label;
+        padding: 8px !important;
+        border: none !important;
+        border-radius: $owl-radius-sm;
+        text-align: center;
+    }
+
+    td {
+        background: $owl-surface !important;
+        border: 1px solid $owl-border-light !important;
+        border-radius: $owl-radius-sm;
+        transition: background var(--owl-transition-fast);
+
+        &:hover { background: $owl-primary-light !important; }
+        &.today {
+            background: $owl-primary-light !important;
+            border-color: $owl-orange !important;
+        }
+    }
+}
+
+// ── Scrollbar ──────────────────────────────────────────────
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: $owl-bg; }
+::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: var(--owl-radius-pill);
+    &:hover { background: #9ca3af; }
+}

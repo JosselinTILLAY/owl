@@ -1,0 +1,292 @@
+// ============================================================
+//  OWL — Charte Graphique
+//  Générée depuis la présentation SHIFT 2026 Nantes
+//  Plugin GenAI pour Moodle — owl.plaiades.fr
+// ============================================================
+
+
+// ------------------------------------------------------------
+//  1. PALETTE DE COULEURS
+// ------------------------------------------------------------
+
+// Couleurs principales
+$owl-orange:        #F07E16;   // Orange principal (fonds, boutons, badges)
+$owl-orange-light:  #F9A84D;   // Orange clair (dégradés, hovers)
+$owl-orange-dark:   #C86210;   // Orange foncé (états actifs, ombres)
+
+$owl-green:         #1B3D2F;   // Vert foncé (logo, titres principaux, textes clés)
+$owl-green-mid:     #2A5E47;   // Vert intermédiaire (variantes)
+
+$owl-white:         #FAFAF8;   // Blanc cassé (fond général)
+$owl-white-pure:    #FFFFFF;   // Blanc pur (cartes, zones de contenu)
+
+$owl-gray-light:    #F0EFEC;   // Gris très clair (fonds secondaires)
+$owl-gray:          #8A8A8A;   // Gris moyen (textes secondaires, placeholders)
+$owl-gray-dark:     #3D3D3D;   // Gris foncé (corps de texte)
+
+// Couleurs sémantiques (issues du graphique de rétention)
+$owl-retention-low:    #F5C842;  // Jaune — activités passives (cours magistral, lire)
+$owl-retention-high:   #D94040;  // Rouge — activités actives (discuter, pratiquer, enseigner)
+
+
+// ------------------------------------------------------------
+//  2. VARIABLES CSS (à injecter dans :root)
+// ------------------------------------------------------------
+
+:root {
+  // Couleurs
+  --owl-orange:        #{$owl-orange};
+  --owl-orange-light:  #{$owl-orange-light};
+  --owl-orange-dark:   #{$owl-orange-dark};
+  --owl-green:         #{$owl-green};
+  --owl-green-mid:     #{$owl-green-mid};
+  --owl-white:         #{$owl-white};
+  --owl-white-pure:    #{$owl-white-pure};
+  --owl-gray-light:    #{$owl-gray-light};
+  --owl-gray:          #{$owl-gray};
+  --owl-gray-dark:     #{$owl-gray-dark};
+
+  // Dégradés signature
+  --owl-gradient-orange: linear-gradient(135deg, #{$owl-orange} 0%, #{$owl-orange-light} 100%);
+  --owl-gradient-green:  linear-gradient(135deg, #{$owl-green} 0%, #{$owl-green-mid} 100%);
+
+  // Typographie
+  --owl-font-display: 'Syne', 'Barlow Condensed', sans-serif;  // Titres espacés
+  --owl-font-body:    'DM Sans', 'Inter', sans-serif;           // Corps de texte
+  --owl-font-mono:    'JetBrains Mono', monospace;              // Code / technique
+
+  --owl-tracking-wide:   0.15em;   // letter-spacing titres (style présentation)
+  --owl-tracking-wider:  0.25em;   // letter-spacing super-titres
+
+  // Espacements
+  --owl-space-xs:   4px;
+  --owl-space-sm:   8px;
+  --owl-space-md:   16px;
+  --owl-space-lg:   32px;
+  --owl-space-xl:   64px;
+  --owl-space-2xl:  96px;
+
+  // Rayons de bordure
+  --owl-radius-sm:    8px;
+  --owl-radius-md:    16px;
+  --owl-radius-lg:    32px;
+  --owl-radius-blob:  60% 40% 55% 45% / 50% 60% 40% 50%;  // Formes organiques (blobs)
+  --owl-radius-pill:  999px;
+
+  // Ombres
+  --owl-shadow-sm:  0 2px 8px rgba(26, 61, 47, 0.10);
+  --owl-shadow-md:  0 4px 20px rgba(26, 61, 47, 0.14);
+  --owl-shadow-lg:  0 8px 40px rgba(26, 61, 47, 0.18);
+  --owl-shadow-orange: 0 4px 20px rgba(240, 126, 22, 0.35);  // Halo orange pour CTA
+
+  // Transitions
+  --owl-transition-fast:   150ms ease;
+  --owl-transition-normal: 250ms ease;
+  --owl-transition-slow:   400ms ease;
+}
+
+
+// ------------------------------------------------------------
+//  3. TYPOGRAPHIE
+// ------------------------------------------------------------
+
+// Mixins typographiques alignés sur la présentation
+
+@mixin owl-display-xl {
+  font-family: var(--owl-font-display);
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  font-weight: 700;
+  letter-spacing: var(--owl-tracking-wider);
+  text-transform: uppercase;
+  line-height: 1.05;
+}
+
+@mixin owl-display-lg {
+  font-family: var(--owl-font-display);
+  font-size: clamp(1.8rem, 4vw, 3.2rem);
+  font-weight: 600;
+  letter-spacing: var(--owl-tracking-wide);
+  text-transform: uppercase;
+  line-height: 1.1;
+}
+
+@mixin owl-heading {
+  font-family: var(--owl-font-display);
+  font-size: clamp(1.2rem, 2.5vw, 1.8rem);
+  font-weight: 600;
+  letter-spacing: var(--owl-tracking-wide);
+  text-transform: uppercase;
+  line-height: 1.3;
+}
+
+@mixin owl-subheading {
+  font-family: var(--owl-font-body);
+  font-size: clamp(1rem, 1.8vw, 1.25rem);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1.6;
+}
+
+@mixin owl-body {
+  font-family: var(--owl-font-body);
+  font-size: 1rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.7;
+}
+
+@mixin owl-label {
+  font-family: var(--owl-font-display);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: var(--owl-tracking-wider);
+  text-transform: uppercase;
+}
+
+
+// ------------------------------------------------------------
+//  4. COMPOSANTS UI
+// ------------------------------------------------------------
+
+// --- Badge / étiquette titre (style "QUEL EST LE PROBLÈME ?")
+@mixin owl-badge-title {
+  display: inline-block;
+  padding: var(--owl-space-sm) var(--owl-space-lg);
+  background-color: var(--owl-orange);
+  color: var(--owl-white-pure);
+  @include owl-heading;
+  border-radius: var(--owl-radius-sm);
+}
+
+// --- Bouton principal (orange)
+@mixin owl-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--owl-space-sm);
+  padding: 12px 28px;
+  background: var(--owl-gradient-orange);
+  color: var(--owl-white-pure);
+  border: none;
+  border-radius: var(--owl-radius-pill);
+  font-family: var(--owl-font-display);
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: var(--owl-tracking-wide);
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: var(--owl-shadow-orange);
+  transition: transform var(--owl-transition-fast),
+              box-shadow var(--owl-transition-fast);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 28px rgba(240, 126, 22, 0.5);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// --- Bouton secondaire (vert foncé)
+@mixin owl-btn-secondary {
+  @include owl-btn-primary;
+  background: var(--owl-gradient-green);
+  box-shadow: var(--owl-shadow-md);
+
+  &:hover {
+    box-shadow: 0 6px 28px rgba(26, 61, 47, 0.35);
+  }
+}
+
+// --- Bouton outline
+@mixin owl-btn-outline {
+  @include owl-btn-primary;
+  background: transparent;
+  color: var(--owl-orange);
+  border: 2px solid var(--owl-orange);
+  box-shadow: none;
+
+  &:hover {
+    background: var(--owl-orange);
+    color: var(--owl-white-pure);
+    box-shadow: var(--owl-shadow-orange);
+  }
+}
+
+// --- Carte (carte de fonctionnalité)
+@mixin owl-card {
+  background: var(--owl-white-pure);
+  border-radius: var(--owl-radius-lg);
+  padding: var(--owl-space-lg);
+  box-shadow: var(--owl-shadow-md);
+  transition: transform var(--owl-transition-normal),
+              box-shadow var(--owl-transition-normal);
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--owl-shadow-lg);
+  }
+}
+
+// --- Blob décoratif (forme organique des slides)
+@mixin owl-blob($color: $owl-orange, $size: 300px) {
+  width: $size;
+  height: $size;
+  background-color: $color;
+  border-radius: var(--owl-radius-blob);
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+}
+
+
+// ------------------------------------------------------------
+//  5. CLASSES UTILITAIRES
+// ------------------------------------------------------------
+
+// Couleurs de texte
+.text-owl-orange  { color: var(--owl-orange); }
+.text-owl-green   { color: var(--owl-green); }
+.text-owl-gray    { color: var(--owl-gray); }
+.text-owl-white   { color: var(--owl-white-pure); }
+
+// Couleurs de fond
+.bg-owl-orange    { background-color: var(--owl-orange); }
+.bg-owl-green     { background-color: var(--owl-green); }
+.bg-owl-white     { background-color: var(--owl-white); }
+.bg-owl-gradient  { background: var(--owl-gradient-orange); }
+
+// Typographie
+.owl-display-xl   { @include owl-display-xl; }
+.owl-display-lg   { @include owl-display-lg; }
+.owl-heading      { @include owl-heading; }
+.owl-subheading   { @include owl-subheading; }
+.owl-body         { @include owl-body; }
+.owl-label        { @include owl-label; }
+.owl-badge-title  { @include owl-badge-title; }
+
+// Composants
+.owl-btn-primary   { @include owl-btn-primary; }
+.owl-btn-secondary { @include owl-btn-secondary; }
+.owl-btn-outline   { @include owl-btn-outline; }
+.owl-card          { @include owl-card; }
+
+
+// ------------------------------------------------------------
+//  6. ACCESSIBILITÉ
+// ------------------------------------------------------------
+
+// Focus visible (contraste suffisant sur fonds orange et vert)
+:focus-visible {
+  outline: 3px solid var(--owl-green);
+  outline-offset: 3px;
+}
+
+// Réduction du mouvement
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

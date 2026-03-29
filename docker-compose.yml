@@ -3,6 +3,7 @@ services:
     env_file:
       - .env
     image: mariadb:11
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     volumes:
       - mariadb_data:/var/lib/mysql
     restart: unless-stopped
@@ -17,9 +18,9 @@ services:
       - .env
     volumes:
       - moodle_data:/var/www/moodledata
-      - ./moodle:/var/www/html:delegated
-      - ./plugin/block:/var/www/html/public/blocks/owl
-      - ./plugin/mod:/var/www/html/public/mod/owl
+      - ./plugin/block:/var/www/html/blocks/owl
+      - ./plugin/mod:/var/www/html/mod/owl
+      - ./plugin/theme/owl:/var/www/html/theme/owl
       - ./docker/php/opcache.ini:/usr/local/etc/php/conf.d/opcache.ini
     ports:
       - "8089:80"
