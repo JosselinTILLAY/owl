@@ -37,12 +37,12 @@ async def background_generate_podcast(
         filename = f"{job_id}.mp3"
         output_path = os.path.join(PODCASTS_DIR, filename)
         
-        if provider == "elevenlabs":
-            await synthesize_audio_elevenlabs(script, output_path, mode=mode)
-        elif provider == "voxtral":
-            await synthesize_audio_voxtral(script, output_path, mode=mode)
-        else:
-            await synthesize_audio_openai(script, output_path)
+        #if provider == "elevenlabs":
+        #    await synthesize_audio_elevenlabs(script, output_path, mode=mode)
+        #elif provider == "voxtral":
+        await synthesize_audio_voxtral(script, output_path, mode=mode)
+        #else:
+        #    await synthesize_audio_openai(script, output_path)
         
         audio_url = f"/static/podcasts/{filename}"
         result = PodcastResponse(

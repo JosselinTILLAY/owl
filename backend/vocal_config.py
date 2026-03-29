@@ -1,7 +1,9 @@
 from config import (
     ELEVEN_LABS_MODEL_ID,
     ELEVEN_LABS_VOICE_ID_OWL,
-    ELEVEN_LABS_VOICE_ID_BILLIE
+    ELEVEN_LABS_VOICE_ID_BILLIE,
+    MISTRAL_VOICE_ID_MAN,
+    MISTRAL_VOICE_ID_WOMAN
 )
 
 # Voice Mappings — Owl (Antoine) & Billie (Koraly)
@@ -45,5 +47,13 @@ VOCAL_CONFIG = {
         },
         "pause_duration_ms": 150,
         "batch_size": 5
+    },
+    "voxtral": {
+        "voices": {
+            "Owl": MISTRAL_VOICE_ID_MAN,
+            "Billie": MISTRAL_VOICE_ID_WOMAN,
+            "Narrator": MISTRAL_VOICE_ID_MAN
+        },
+        "pause_duration_ms": 150
     }
 }
