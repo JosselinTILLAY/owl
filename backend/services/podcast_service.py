@@ -8,6 +8,7 @@ from config import (
     client, logger, PODCASTS_DIR, ELEVEN_LABS_API_KEY,
     FFMPEG_PATH, FFPROBE_PATH, OPENAI_MODEL_ID, PROMPTS
 )
+from mistralai.client import Mistral
 from vocal_config import VOCAL_CONFIG
 from services.music_service import generate_background_music
 from models import PodcastScript
@@ -199,6 +200,87 @@ async def synthesize_audio_elevenlabs(
         else:
             raise Exception("Generated audio is empty.")
 
+    finally:
+        for f in temp_files:
+            try: os.remove(f)
+            except: pass
+
+
+async def synthesize_audio_voxtral(
+    script: PodcastScript,
+    output_path: str,
+    mode: Literal["solo", "duo"] = "duo"
+):
+    """Synthèse audio Voxtral (Mistral TTS) avec appels séquentiels."""
+    import base64
+    from pathlib import Path
+    
+    # Get Mistral API key from environment
+    mistral_api_key = os.getenv("MISTRAL_API_KEY")
+    if not mistral_api_key:
+        raise Exception("Mistral API key is missing. Please set MISTRAL_API_KEY in your .env file.")
+    
+    # Initialize Mistral client
+    mistral_client = Mistral(api_key=mistral_api_key)
+    
+    # Get Voxtral configuration
+    voices = VOCAL_CONFIG.get("voxtral", {}).get("voices", {})
+    if not voices:
+        raise Exception("Voxtral voices not configured in VOCAL_CONFIG")
+    
+    pause_ms = VOCAL_CONFIG.get("voxtral", {}).get("pause_duration_ms", 150)
+    
+    temp_files = []
+    try:
+        combined_audio = AudioSegment.empty()
+        
+        for i, line in enumerate(script.lines):
+            voice_id = voices.get(line.speaker, voices.get("Narrator"))
+            if not voice_id:
+                logger.warning(f"No voice ID configured for speaker {line.speaker}, using default")
+                voice_id = voices.get("Narrator")
+            
+            logger.info(f"Generating Voxtral audio for {line.speaker} (line {i+1}) using voice {voice_id}...")
+            
+            try:
+                # Call Mistral Voxtral TTS API
+                response = mistral_client.audio.speech.complete(
+                    model="voxtral-mini-tts-2603",
+                    input=line.content,
+                    voice_id=voice_id,
+                    response_format="mp3",
+                )
+                
+                # Decode and save audio
+                audio_data = base64.b64decode(response.audio_data)
+                temp_filename = f"temp_vox_{uuid.uuid4()}.mp3"
+                temp_path = os.path.join(PODCASTS_DIR, temp_filename)
+                Path(temp_path).write_bytes(audio_data)
+                temp_files.append(temp_path)
+                
+                # Add to combined audio
+                segment = AudioSegment.from_mp3(temp_path)
+                combined_audio += segment
+                
+                # Add pause between lines
+                prev_speaker = script.lines[i - 1].speaker if i > 0 else None
+                curr_speaker = line.speaker
+                silence = pause_ms if prev_speaker != curr_speaker else max(pause_ms - 50, 80)
+                combined_audio += AudioSegment.silent(duration=silence)
+                
+                logger.info(f"Appended {line.speaker}'s line. Current duration: {len(combined_audio)}ms")
+                
+            except Exception as e:
+                logger.error(f"Voxtral line generation failed for {line.speaker}: {str(e)}")
+                continue
+        
+        if len(combined_audio) > 0:
+            combined_audio.export(output_path, format="mp3")
+            logger.info(f"Successfully generated Voxtral podcast (Final Size: {os.path.getsize(output_path)} bytes)")
+        else:
+            logger.error("Voxtral combined audio is empty!")
+            raise Exception("Generated audio is empty.")
+            
     finally:
         for f in temp_files:
             try: os.remove(f)
