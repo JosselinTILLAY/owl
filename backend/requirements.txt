@@ -47,12 +47,12 @@ numpy==2.4.3
 oauthlib==3.3.1
 onnxruntime==1.24.4
 openai==2.30.0
-opentelemetry-api==1.39.1
+opentelemetry-api==1.40.0
 opentelemetry-exporter-otlp-proto-common==1.40.0
 opentelemetry-exporter-otlp-proto-grpc==1.40.0
 opentelemetry-proto==1.40.0
 opentelemetry-sdk==1.40.0
-opentelemetry-semantic-conventions==0.60b1
+opentelemetry-semantic-conventions==0.61b0
 orjson==3.11.7
 overrides==7.7.0
 packaging==26.0
