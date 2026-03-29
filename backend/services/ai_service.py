@@ -1,3 +1,5 @@
+from ast import List, Str
+from pydantic import BaseModel
 from config import client, logger, OPENAI_MODEL_ID, PROMPTS
 from models import Feature
 
@@ -47,6 +49,18 @@ async def generate_summary(text: str) -> str:
         logger.error(f"Summarization failed: {str(e)}")
         raise e
 
+
+class ExerciseQuestion(BaseModel):
+    question: str
+    options: list[str]
+    answer: str
+    explanation: str
+
+class ExercisesResponse(BaseModel):
+    questions: list[ExerciseQuestion]
+
+
+
 async def generate_exercises(text: str) -> str:
     """Generates interactive QCM in ENGLISH."""
     logger.info(f"⚡ {OPENAI_MODEL_ID.upper()} Exercises requested (English results).")
@@ -56,7 +70,14 @@ async def generate_exercises(text: str) -> str:
             messages=[
                 {"role": "system", "content": PROMPTS['exercises']['system']},
                 {"role": "user", "content": PROMPTS['exercises']['user'].replace("{text}", text)}
-            ]
+            ],
+            response_format={
+              "type": "json_schema",
+              "json_schema": {
+                "name": "ExercisesResponse",
+                "schema": ExercisesResponse.model_json_schema()
+              }
+            }
         )
         logger.info("Exercise generation successful.")
         return response.choices[0].message.content

@@ -30,10 +30,56 @@ if ($owl->status === 'podcast_ready' && !empty($owl->podcast_url)) {
         'alert alert-danger'
     );
 } else if ($owl->status === 'qcm_ready' && !empty($owl->qcm_data)) {
-    echo html_writer::div(
-        html_writer::tag('div', format_text($owl->qcm_data, FORMAT_MARKDOWN)),
-        'owl-qcm'
-    );
+    $qcm = json_decode($owl->qcm_data, true);
+    if (!empty($qcm['questions'])) {
+        $html = '<form id="owl-qcm-form" class="owl-qcm">';
+        foreach ($qcm['questions'] as $qi => $q) {
+            $html .= '<div class="owl-qcm-question" data-answer="' . s($q['answer']) . '" data-explanation="' . s($q['explanation']) . '">';
+            $html .= '<p class="owl-qcm-q"><strong>' . ($qi + 1) . '. ' . s($q['question']) . '</strong></p>';
+            $html .= '<ul class="owl-qcm-options list-unstyled">';
+            foreach ($q['options'] as $option) {
+                $optid = 'q' . $qi . '_opt_' . md5($option);
+                $html .= '<li><label><input type="radio" name="q' . $qi . '" value="' . s($option) . '" id="' . $optid . '"> ' . s($option) . '</label></li>';
+            }
+            $html .= '</ul>';
+            $html .= '<div class="owl-qcm-feedback" style="display:none;"></div>';
+            $html .= '</div>';
+        }
+        $html .= '<button type="button" id="owl-qcm-submit" class="btn btn-primary mt-3">' . get_string('qcm_check', 'mod_owl') . '</button>';
+        $html .= '<div id="owl-qcm-score" class="mt-3" style="display:none;"></div>';
+        $html .= '</form>';
+
+        echo $html;
+
+        $PAGE->requires->js_amd_inline("
+            document.getElementById('owl-qcm-submit').addEventListener('click', function() {
+                var questions = document.querySelectorAll('.owl-qcm-question');
+                var score = 0;
+                questions.forEach(function(qEl, idx) {
+                    var selected = qEl.querySelector('input[type=radio]:checked');
+                    var feedback = qEl.querySelector('.owl-qcm-feedback');
+                    var answer = qEl.dataset.answer;
+                    var explanation = qEl.dataset.explanation;
+                    feedback.style.display = 'block';
+                    if (!selected) {
+                        feedback.innerHTML = '<div class=\"alert alert-warning\">No answer selected.</div>';
+                        return;
+                    }
+                    if (selected.value.startsWith(answer + ':') || selected.value.startsWith(answer + ' ') || selected.value === answer) {
+                        score++;
+                        feedback.innerHTML = '<div class=\"alert alert-success\">Correct! ' + explanation + '</div>';
+                    } else {
+                        feedback.innerHTML = '<div class=\"alert alert-danger\">Wrong. Correct answer: <strong>' + answer + '</strong>. ' + explanation + '</div>';
+                    }
+                });
+                var total = questions.length;
+                var scoreEl = document.getElementById('owl-qcm-score');
+                scoreEl.style.display = 'block';
+                scoreEl.innerHTML = '<div class=\"alert alert-info\"><strong>Score: ' + score + ' / ' + total + '</strong></div>';
+                document.getElementById('owl-qcm-submit').disabled = true;
+            });
+        ");
+    }
 } else if ($owl->status === 'qcm_failed') {
     echo html_writer::div(
         html_writer::tag('p', get_string('qcm_failed', 'mod_owl')),

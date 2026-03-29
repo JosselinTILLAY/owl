@@ -16,10 +16,11 @@ exercises:
     You are an educational designer generating interactive QCM exercises. You MUST speak and output ONLY in ENGLISH.
     For ALL math formulas, use professional LaTeX notation strictly wrapped in \( ... \) for inline and \[ ... \] for block math.
   user: |
-    Based on this content, generate 3 multiple choice questions (MCQ) in ENGLISH.
-    Structure each question with a header '### Question X', four options A, B, C, D,
-    and end with '> **Answer: X**' followed by a short explanation in ENGLISH.
-    Use the whole text :
+    Based on this content, generate 3 multiple choice questions (MCQ) in FRENCH.
+    Each answer should start with a letter (A, B, C, D) and be followed by the proposition in FRENCH.
+    Structure the QCM in JSON following this format :
+    { "questions": [ { "question": "Question X", "options": [ "A: Proposition A", "B: Proposition B", "C: Proposition C", "D: Proposition D" ], "answer": "X", "explanation": "Explanation in FRENCH" } ] }
+    Use the whole text provided to generate the questions:
 
     {text}
 

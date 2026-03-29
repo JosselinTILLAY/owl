@@ -35,3 +35,5 @@ uvicorn==0.42.0
 uvloop==0.22.1
 watchfiles==1.1.1
 websockets==16.0
+chromadb==1.5.5
+langchain-text-splitters==1.1.1

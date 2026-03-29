@@ -37,6 +37,7 @@ $string['generating_hint']    = 'Cette étape peut prendre quelques minutes. La 
 $string['podcast_failed']     = 'La génération du podcast a échoué. Veuillez contacter un administrateur.';
 $string['qcm_failed']         = 'La génération du QCM a échoué. Veuillez contacter un administrateur.';
 $string['qcm_ready_inline']   = 'Le QCM est prêt. Cliquez pour le consulter.';
+$string['qcm_check']          = 'Vérifier mes réponses';
 
 // index.php
 $string['no_instances'] = 'Aucune génération Owl dans ce cours.';
