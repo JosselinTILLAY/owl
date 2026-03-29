@@ -15,18 +15,19 @@ summarize:
     3. Pas de paraphrase inutile
     4. Priorité aux concepts clés et définitions importantes
 
-    FORMAT :
-    - Titre principal
-    - Sections avec sous-titres
-    - Bullet points
+    FORMAT MARKDOWN STRICT :
+    - Titre principal avec # (un seul)
+    - Chaque section/chapitre avec ## (obligatoire pour la navigation)
+    - Sous-sections avec ### si nécessaire
+    - Bullet points pour les listes
     - Concepts importants en **gras**
     - Formules inline : \( ... \)
     - Formules bloc : \[ ... \]
-    - La sortie doit être en markdown.
 
-    SECTIONS OBLIGATOIRES :
-    - "À retenir" (3 à 5 points max)
-    - "Erreurs fréquentes" (si pertinent)
+    SECTIONS OBLIGATOIRES (chacune avec ##) :
+    - Une section par chapitre/thème du cours
+    - ## À retenir (3 à 5 points max)
+    - ## Erreurs fréquentes (si pertinent)
 
   user: |
     Résume ce contenu de cours :
