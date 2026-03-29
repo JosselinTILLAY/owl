@@ -29,7 +29,7 @@ async def generate_exercises_content(text: str = Form(...)):
     """Génère des QCM interactifs en JSON structuré."""
     try:
         exercises = await generate_exercises(text)
-        return exercises
+        return {"exercises": exercises}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

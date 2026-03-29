@@ -22,6 +22,7 @@ summarize:
     - Concepts importants en **gras**
     - Formules inline : \( ... \)
     - Formules bloc : \[ ... \]
+    - La sortie doit être en markdown.
 
     SECTIONS OBLIGATOIRES :
     - "À retenir" (3 à 5 points max)
@@ -59,12 +60,12 @@ exercises:
       "questions": [
         {
           "question": "...",
-          "options": {
-            "A": "...",
-            "B": "...",
-            "C": "...",
-            "D": "..."
-          },
+          "options": [
+            "A: ...",
+            "B: ...",
+            "C: ...",
+            "D: ..."
+          ],
           "answer": "A",
           "explanation": "..."
         }
