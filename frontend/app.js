@@ -99,6 +99,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (currentFeature === 'podcast') {
                 await handlePodcastGeneration();
+            } else if (currentFeature === 'exercises') {
+                await handleExercisesGeneration();
             } else {
                 await handleRAGStreaming(currentFeature);
             }
@@ -130,6 +132,123 @@ document.addEventListener('DOMContentLoaded', () => {
         const finalData = await pollJobStatus(podData.job_id);
         renderOutput('podcast', finalData);
     }
+
+    async function handleExercisesGeneration() {
+        loadingText.textContent = "Création des QCM...";
+
+        // Upload PDF et extraire le texte
+        const res = await fetch(`${BACKEND_URL}/upload-pdf`, {
+            method: 'POST',
+            body: (() => { const fd = new FormData(); fd.append('file', selectedFile); return fd; })()
+        });
+        if (!res.ok) throw new Error("Impossible de lire le PDF");
+        const { text } = await res.json();
+
+        // Appel endpoint QCM structuré
+        const genBody = new FormData();
+        genBody.append('text', text);
+
+        const exRes = await fetch(`${BACKEND_URL}/generate-exercises`, { method: 'POST', body: genBody });
+        if (!exRes.ok) throw new Error("La génération des QCM a échoué");
+        const data = await exRes.json();
+
+        // Affichage
+        const outlet = document.getElementById('result-exercises');
+        const contentArea = document.getElementById('exercises-content');
+        document.querySelectorAll('.result-outlet').forEach(o => o.classList.add('hidden'));
+        outlet.classList.remove('hidden');
+
+        // Déballer : data peut être {questions:[]} ou {exercises:{questions:[]}}
+        const questions = data.questions || (data.exercises && data.exercises.questions);
+        if (questions && Array.isArray(questions)) {
+            contentArea.innerHTML = renderQCM(questions);
+            triggerMathRendering('exercises-content');
+        } else {
+            contentArea.innerHTML = '<p>Format QCM inattendu.</p>';
+        }
+    }
+
+    function renderQCM(questions) {
+        return questions.map((q, i) => {
+            const options = Array.isArray(q.options)
+                ? q.options
+                : Object.entries(q.options).map(([k, v]) => ({ key: k, text: v }));
+
+            return `
+            <div class="qcm-card" data-idx="${i}">
+                <div class="qcm-question">
+                    <span class="qcm-num">${i + 1}.</span>
+                    <span>${q.question}</span>
+                </div>
+                <div class="qcm-options">
+                    ${options.map(opt => {
+                        const key = opt.key || opt.charAt?.(0) || '';
+                        const text = opt.text || opt.substring?.(3) || opt;
+                        return `
+                        <div class="qcm-option" data-key="${key}" data-answer="${q.answer}" data-idx="${i}">
+                            <strong>${key}.</strong>
+                            <span>${text}</span>
+                        </div>`;
+                    }).join('')}
+                </div>
+                <div class="qcm-explanation" id="qcm-expl-${i}">
+                    💡 ${q.explanation}
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    // Event delegation for QCM clicks
+    document.addEventListener('click', (e) => {
+        const option = e.target.closest('.qcm-option');
+        if (!option) return;
+
+        const card = option.closest('.qcm-card');
+        if (card.dataset.answered) return;
+        card.dataset.answered = 'true';
+
+        const selected = option.dataset.key;
+        const correct = option.dataset.answer;
+        const idx = option.dataset.idx;
+
+        card.querySelectorAll('.qcm-option').forEach(opt => {
+            const k = opt.dataset.key;
+            if (k === correct) {
+                opt.style.borderColor = '#23d160';
+                opt.style.background = 'rgba(35,209,96,0.15)';
+            } else if (k === selected && selected !== correct) {
+                opt.style.borderColor = '#ef4444';
+                opt.style.background = 'rgba(239,68,68,0.15)';
+            }
+        });
+
+        document.getElementById(`qcm-expl-${idx}`).style.display = 'block';
+    });
+
+    // Event delegation for accordion clicks (summary nav + headers)
+    document.addEventListener('click', (e) => {
+        const navLink = e.target.closest('.summary-nav-link');
+        const header = e.target.closest('.accordion-header');
+        const target = navLink || header;
+        if (!target) return;
+
+        e.preventDefault();
+        const idx = target.dataset.section;
+        if (idx === undefined) return;
+
+        const body = document.getElementById(`body-${idx}`);
+        const arrow = document.getElementById(`arrow-${idx}`);
+        if (!body || !arrow) return;
+
+        const isHidden = body.classList.contains('hidden');
+        body.classList.toggle('hidden');
+        arrow.textContent = isHidden ? '▼' : '▶';
+
+        if (isHidden) {
+            document.getElementById(`section-${idx}`).scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            triggerMathRendering(`body-${idx}`);
+        }
+    });
 
     async function handleRAGStreaming(featureId) {
         const outlet = document.getElementById(`result-${featureId}`);
@@ -170,7 +289,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (contentArea) {
-            contentArea.innerHTML = formatMarkdown(fullText);
+            if (featureId === 'summary') {
+                contentArea.innerHTML = formatSummaryAccordion(fullText);
+            } else {
+                contentArea.innerHTML = formatMarkdown(fullText);
+            }
             triggerMathRendering(`${featureId}-content`);
         } else if (featureId === 'chat') {
             updateLastChatBubble(fullText, false);
@@ -249,6 +372,74 @@ document.addEventListener('DOMContentLoaded', () => {
             emptyState.classList.add('hidden');
         }
     }
+
+    function formatSummaryAccordion(text) {
+        if (typeof text !== 'string') return JSON.stringify(text);
+
+        // Split by ## headings (sections)
+        const lines = text.split('\n');
+        let sections = [];
+        let currentTitle = null;
+        let currentContent = [];
+
+        for (const line of lines) {
+            const h2Match = line.match(/^##\s+(.+)/);
+            if (h2Match) {
+                if (currentTitle !== null) {
+                    sections.push({ title: currentTitle, content: currentContent.join('\n') });
+                }
+                currentTitle = h2Match[1].trim();
+                currentContent = [];
+            } else if (currentTitle !== null) {
+                currentContent.push(line);
+            } else {
+                // Content before first ## (intro)
+                currentContent.push(line);
+            }
+        }
+        // Push last section
+        if (currentTitle !== null) {
+            sections.push({ title: currentTitle, content: currentContent.join('\n') });
+        }
+
+        // If no ## found, fallback to simple markdown
+        if (sections.length === 0) {
+            return '<div class="markdown-view">' + marked.parse(text) + '</div>';
+        }
+
+        // Build intro (content before first ##)
+        let introContent = '';
+        const firstH2 = text.indexOf('\n## ');
+        if (firstH2 > 0) {
+            introContent = marked.parse(text.substring(0, firstH2).trim());
+        }
+
+        // Build accordion
+        let html = '';
+        if (introContent) html += `<div class="markdown-view" style="margin-bottom:16px">${introContent}</div>`;
+
+        html += '<div class="summary-nav">';
+        sections.forEach((s, i) => {
+            html += `<span class="summary-nav-link" data-section="${i}">${s.title}</span>`;
+        });
+        html += '</div>';
+
+        sections.forEach((s, i) => {
+            const renderedContent = marked.parse(s.content.trim());
+            html += `
+                <div class="accordion-section" id="section-${i}">
+                    <div class="accordion-header" data-section="${i}">
+                        <span class="accordion-arrow" id="arrow-${i}">▼</span>
+                        <span>${s.title}</span>
+                    </div>
+                    <div class="accordion-body" id="body-${i}">
+                        <div class="markdown-view">${renderedContent}</div>
+                    </div>
+                </div>`;
+        });
+
+        return html;
+    };
 
     function formatMarkdown(text) {
         if (typeof text !== 'string') return JSON.stringify(text);
