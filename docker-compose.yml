@@ -25,6 +25,14 @@ services:
       - "8089:80"
     restart: unless-stopped
 
+  redis:
+    image: redis:alpine
+    container_name: redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+
 volumes:
   mariadb_data:
   moodle_data:
+  redis_data:

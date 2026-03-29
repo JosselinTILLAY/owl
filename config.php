@@ -364,8 +364,8 @@ $CFG->admin = 'admin';
 //                                                        // for tuning php-memcached 3.0.x (PHP 7)
 //
 //   Redis session handler (requires redis server and redis extension):
-//      $CFG->session_handler_class = '\core\session\redis';
-//      $CFG->session_redis_host = '127.0.0.1';  or...              // If there is only one host, use the single Redis connection.
+      $CFG->session_handler_class = '\core\session\redis';
+      $CFG->session_redis_host = 'redis';              // If there is only one host, use the single Redis connection.
 //      $CFG->session_redis_host = '127.0.0.1:7000,127.0.0.1:7001'; // If there are multiple hosts (separated by a comma),
 //                                                                  // use the Redis cluster connection.
 //      Use TLS to connect to Redis. An array of SSL context options. Usually:
