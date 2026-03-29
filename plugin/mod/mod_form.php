@@ -115,9 +115,10 @@ class mod_owl_mod_form extends moodleform_mod {
                     '#id_type { display: none !important; }',
                     '#id_type ~ label { display: none !important; }',
                     '.fitem:has(#id_type) .fitemtitle { display: none !important; }',
-                    '#owl-type-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }',
-                    '.owl-type-btn { padding: 6px 18px; border: 2px solid #0066cc; border-radius: 20px; background: none; color: #0066cc; font-weight: 500; cursor: pointer; transition: background 0.15s, color 0.15s; }',
-                    '.owl-type-btn.owl-type-active { background: #0066cc; color: #fff; }'
+                    '#owl-type-btns { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }',
+                    '.owl-type-btn { padding: 8px 22px; border: 2px solid #F07E16; border-radius: 999px; background: none; color: #F07E16; font-family: Syne, sans-serif; font-weight: 600; font-size: 0.85rem; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.15s; }',
+                    '.owl-type-btn:hover { background: rgba(240,126,22,0.08); transform: translateY(-1px); }',
+                    '.owl-type-btn.owl-type-active { background: linear-gradient(135deg, #F07E16, #F9A84D); color: #fff; border-color: transparent; box-shadow: 0 4px 20px rgba(240,126,22,0.35); }'
                 ].join(' ');
                 document.head.appendChild(style);
             });
