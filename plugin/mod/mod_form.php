@@ -15,7 +15,7 @@ class mod_owl_mod_form extends moodleform_mod {
             'video'   => get_string('type_video',    'mod_owl'),
             'qcm'     => get_string('type_qcm',      'mod_owl'),
             'summary' => get_string('type_summary',  'mod_owl'),
-            'discussion' => get_string('type_discussion', 'mod_owl'),
+            // 'discussion' => get_string('type_discussion', 'mod_owl'),
         ];
         $mform->addElement('select', 'type', get_string('form_type', 'mod_owl'), $types);
         $mform->setType('type', PARAM_ALPHA);
@@ -27,6 +27,20 @@ class mod_owl_mod_form extends moodleform_mod {
             $btns .= '<button type="button" class="owl-type-btn" data-value="' . s($value) . '">' . s($label) . '</button>';
         }
         $mform->addElement('html', '<div id="owl-type-btns">' . $btns . '</div>');
+
+        // Descriptions par type
+        $typedescs = [
+            'podcast'    => get_string('type_podcast_desc',    'mod_owl'),
+            'video'      => get_string('type_video_desc',      'mod_owl'),
+            'qcm'        => get_string('type_qcm_desc',        'mod_owl'),
+            'summary'    => get_string('type_summary_desc',    'mod_owl'),
+            'discussion' => get_string('type_discussion_desc', 'mod_owl'),
+        ];
+        $descdivs = '';
+        foreach ($typedescs as $value => $desc) {
+            $descdivs .= '<p class="owl-type-desc" data-type="' . s($value) . '" style="display:none;">' . s($desc) . '</p>';
+        }
+        $mform->addElement('html', '<div id="owl-type-descs">' . $descdivs . '</div>');
 
         // En-tête général + Nom (sans required — fallback dans owl_add_instance)
         
@@ -48,11 +62,15 @@ class mod_owl_mod_form extends moodleform_mod {
                 var nameEl   = \$('#id_name');
                 var selectEl = \$('#id_type');
                 var btns     = \$('#owl-type-btns .owl-type-btn');
+                var descs    = \$('#owl-type-descs .owl-type-desc');
                 var autoFill = nameEl.val() === '';
 
                 function updateActive(val) {
                     btns.each(function() {
                         \$(this).toggleClass('owl-type-active', \$(this).data('value') === val);
+                    });
+                    descs.each(function() {
+                        \$(this).toggle(\$(this).data('type') === val);
                     });
                 }
 
@@ -117,7 +135,9 @@ class mod_owl_mod_form extends moodleform_mod {
                     '.fitem:has(#id_type) .fitemtitle { display: none !important; }',
                     '#owl-type-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }',
                     '.owl-type-btn { padding: 6px 18px; border: 2px solid #0066cc; border-radius: 20px; background: none; color: #0066cc; font-weight: 500; cursor: pointer; transition: background 0.15s, color 0.15s; }',
-                    '.owl-type-btn.owl-type-active { background: #0066cc; color: #fff; }'
+                    '.owl-type-btn.owl-type-active { background: #0066cc; color: #fff; }',
+                    '#owl-type-descs { margin-top: 8px; margin-bottom: 4px; }',
+                    '.owl-type-desc { color: #555; font-size: 0.92em; font-style: italic; margin: 0; }'
                 ].join(' ');
                 document.head.appendChild(style);
             });
