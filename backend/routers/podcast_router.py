@@ -10,7 +10,8 @@ from utils import extract_text_from_pdf
 from services.podcast_service import (
     generate_podcast_script_content, 
     synthesize_audio_openai, 
-    synthesize_audio_elevenlabs
+    synthesize_audio_elevenlabs,
+    synthesize_audio_voxtral
 )
 
 router = APIRouter(tags=["Podcast Generation"])
@@ -38,6 +39,8 @@ async def background_generate_podcast(
         
         if provider == "elevenlabs":
             await synthesize_audio_elevenlabs(script, output_path, mode=mode)
+        elif provider == "voxtral":
+            await synthesize_audio_voxtral(script, output_path, mode=mode)
         else:
             await synthesize_audio_openai(script, output_path)
         
@@ -82,7 +85,13 @@ async def generate_podcast_audio(
     mode: str = Form("duo"), 
     provider: str = Form("elevenlabs")
 ):
-    """Starts a background job to generate a podcast MP3 from the provided text."""
+    """Starts a background job to generate a podcast MP3 from the provided text.
+    
+    Args:
+        text: The text content to convert to podcast
+        mode: Podcast mode - "solo" or "duo" (default: "duo")
+        provider: TTS provider - "openai", "elevenlabs", or "voxtral" (default: "elevenlabs")
+    """
     job_id = str(uuid.uuid4())
     logger.info(f"Podcast generation job created: {job_id} (mode={mode}, provider={provider})")
     
