@@ -5,13 +5,11 @@ from chromadb.utils import embedding_functions
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from config import logger, OPENAI_API_KEY
 
-# Persistent directory for ChromaDB
-DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "chroma_db")
-os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+from config import logger, OPENAI_API_KEY
 
-# Initialize ChromaDB
-# Use the new PersistentClient
-client = chromadb.PersistentClient(path=DB_PATH)
+# Initialize ChromaDB in Ephemeral (Memory-only) mode
+# Sessions are transient and cleared on server restart
+client = chromadb.EphemeralClient()
 
 # Use OpenAI embedding function
 openai_ef = embedding_functions.OpenAIEmbeddingFunction(
