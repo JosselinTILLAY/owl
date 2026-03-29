@@ -24,26 +24,26 @@ VOCAL_CONFIG = {
             "Narrator": ELEVEN_LABS_VOICE_ID_OWL,
         },
         "default_settings": {
-            "stability": 0.3,
-            "similarity_boost": 0.65,
-            "style": 0.7,
+            "stability": 0.5,
+            "similarity_boost": 0.75,
+            "style": 0.6,
             "use_speaker_boost": True
         },
         "persona_settings": {
             "Owl": {
-                "stability": 0.3,
-                "similarity_boost": 0.65,
-                "style": 0.7,
+                "stability": 0.5,
+                "similarity_boost": 0.75,
+                "style": 0.6,
                 "use_speaker_boost": True
             },
             "Billie": {
-                "stability": 0.25,
-                "similarity_boost": 0.6,
-                "style": 0.85,
+                "stability": 0.45,
+                "similarity_boost": 0.7,
+                "style": 0.7,
                 "use_speaker_boost": True
             }
         },
-        "pause_duration_ms": 150,
+        "pause_duration_ms": 100,
         "batch_size": 5
     }
 }

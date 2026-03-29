@@ -35,7 +35,7 @@ def generate_podcast_script_content(
                 {"role": "user", "content": user_prompt}
             ],
             response_format=PodcastScript,
-            temperature=1.1
+            temperature=0.8
         )
         return response.choices[0].message.parsed
     except Exception as e:
