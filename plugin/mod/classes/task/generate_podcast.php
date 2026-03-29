@@ -31,7 +31,6 @@ class generate_podcast extends \core\task\adhoc_task {
             CURLOPT_POSTFIELDS     => http_build_query([
                 'text'     => $record->extracted_text,
                 'mode'     => 'duo',
-                'provider' => 'openai',
             ]),
             CURLOPT_HTTPHEADER     => ['Content-Type: application/x-www-form-urlencoded'],
             CURLOPT_TIMEOUT        => 30,
